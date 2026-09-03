@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bunnyOS Dashboard v2</title>
+<link rel="icon" href="https://assets.bunnyos.ai/sprites/straw_hat.png" type="image/png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --bg-card: #12121a;
+    --bg-card-hover: #1a1a25;
+    --border: #1e1e2e;
+    --text: #e4e4ef;
+    --text-dim: #8888a0;
+    --accent: #f97316;
+    --accent-glow: rgba(249, 115, 22, 0.15);
+    --green: #22c55e;
+    --green-dim: rgba(34, 197, 94, 0.15);
+    --red: #ef4444;
+    --red-dim: rgba(239, 68, 68, 0.15);
+    --blue: #3b82f6;
+    --blue-dim: rgba(59, 130, 246, 0.15);
+    --purple: #a855f7;
+    --purple-dim: rgba(168, 85, 247, 0.15);
+    --yellow: #eab308;
+    --yellow-dim: rgba(234, 179, 8, 0.15);
+    --cyan: #06b6d4;
+    --cyan-dim: rgba(6, 182, 212, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .bg-pattern {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(249,115,22,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(168,85,247,0.04) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-icon {
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, var(--accent), #fb923c);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 0 30px var(--accent-glow);
+  }
+
+  .header h1 {
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), #fb923c, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  .header .subtitle {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+
+  .header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .badge-live { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .badge-rank { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(168,85,247,0.3); }
+
+  .refresh-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .refresh-btn:hover { background: var(--bg-card-hover); border-color: var(--accent); }
+  .refresh-btn.loading { opacity: 0.5; pointer-events: none; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 4px;
+    width: fit-content;
+  }
+
+  .tab {
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-dim);
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tab:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+  .tab.active { background: var(--accent); color: #fff; box-shadow: 0 2px 10px rgba(249,115,22,0.3); }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Stats Row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+
+  .stat-card:hover { border-color: rgba(249,115,22,0.3); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+
+  .stat-card .icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .stat-card .label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 4px; }
+  .stat-card .value { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .stat-card .sub { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+
+  /* Grid Layout */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.3s;
+  }
+
+  .card:hover { border-color: rgba(249,115,22,0.2); }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-header .icon { font-size: 20px; }
+  .card-header h2 { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+  .card-header .count { margin-left: auto; background: var(--bg); padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; color: var(--text-dim); }
+
+  /* Equipment Grid */
+  .equip-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+
+  .equip-slot {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 10px;
+    text-align: center;
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .equip-slot.equipped { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+  .equip-slot.empty { opacity: 0.4; border-style: dashed; }
+  .equip-slot .slot-icon { font-size: 24px; margin-bottom: 6px; }
+  .equip-slot .slot-name { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-dim); margin-bottom: 4px; }
+  .equip-slot .item-name { font-size: 11px; font-weight: 600; color: var(--accent); margin-bottom: 4px; }
+  .equip-slot .item-power { font-size: 16px; font-weight: 800; color: var(--green); }
+  .equip-slot .durability-bar { height: 3px; background: var(--bg-card); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+  .equip-slot .durability-fill { height: 100%; background: var(--green); border-radius: 2px; transition: width 0.3s; }
+
+  /* Mission Cards */
+  .mission-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+
+  .mission-card:hover { border-color: rgba(249,115,22,0.3); }
+  .mission-card.in-progress { border-left: 3px solid var(--blue); }
+  .mission-card.succeeded { border-left: 3px solid var(--green); }
+  .mission-card.failed { border-left: 3px solid var(--red); }
+  .mission-card.available { border-left: 3px solid var(--accent); }
+  .mission-card.pinned { border-left: 3px solid var(--yellow); }
+
+  .mission-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .mission-name { font-size: 14px; font-weight: 700; }
+
+  .mission-status {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 10px;
+    border-radius: 8px;
+  }
+
+  .status-in-progress { background: var(--blue-dim); color: var(--blue); }
+  .status-succeeded { background: var(--green-dim); color: var(--green); }
+  .status-failed { background: var(--red-dim); color: var(--red); }
+  .status-available { background: var(--accent-glow); color: var(--accent); }
+  .status-pinned { background: var(--yellow-dim); color: var(--yellow); }
+
+  .mission-flavor { font-size: 12px; color: var(--text-dim); margin-bottom: 12px; line-height: 1.5; font-style: italic; }
+  .mission-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .mission-stat { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-dim); }
+  .mission-stat .val { font-weight: 700; color: var(--text); }
+
+  .progress-bar { height: 4px; background: var(--bg-card); border-radius: 2px; margin-top: 12px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--cyan)); border-radius: 2px; transition: width 1s; }
+
+  /* Event Cards */
+  .event-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s;
+  }
+
+  .event-card:hover { border-color: rgba(249,115,22,0.2); }
+  .event-card.completed { opacity: 0.6; }
+
+  .event-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .event-info { flex: 1; min-width: 0; }
+  .event-name { font-size: 12px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .event-desc { font-size: 10px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .event-reward { font-size: 12px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+
+  .event-check { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+  .event-check.done { background: var(--green-dim); color: var(--green); }
+  .event-check.pending { background: var(--bg-card); color: var(--text-dim); border: 1px solid var(--border); }
+
+  /* Ledger */
+  .ledger-entry { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(30,30,46,0.5); font-size: 12px; }
+  .ledger-entry:last-child { border-bottom: none; }
+  .ledger-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+  .ledger-reason { flex: 1; font-weight: 500; }
+  .ledger-time { font-size: 10px; color: var(--text-dim); }
+  .ledger-amount { font-weight: 700; font-size: 13px; }
+  .ledger-amount.positive { color: var(--green); }
+  .ledger-amount.negative { color: var(--red); }
+
+  /* Leaderboard */
+  .lb-entry { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(30,30,46,0.5); }
+  .lb-entry:last-child { border-bottom: none; }
+
+  .lb-rank { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; flex-shrink: 0; }
+  .lb-rank.gold { background: var(--yellow-dim); color: var(--yellow); }
+  .lb-rank.silver { background: rgba(148,163,184,0.15); color: #94a3b8; }
+  .lb-rank.bronze { background: rgba(217,119,6,0.15); color: #d97706; }
+  .lb-rank.normal { background: var(--bg); color: var(--text-dim); }
+  .lb-rank.me { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent); }
+
+  .lb-name { flex: 1; font-weight: 600; font-size: 13px; }
+  .lb-name.me { color: var(--accent); }
+  .lb-power { font-weight: 800; font-size: 14px; color: var(--purple); }
+
+  /* Scrollable */
+  .scroll-y { max-height: 400px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+  .scroll-y::-webkit-scrollbar { width: 4px; }
+  .scroll-y::-webkit-scrollbar-track { background: transparent; }
+  .scroll-y::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Loading */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,10,15,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+  }
+
+  .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== INFO PAGE ===== */
+  .info-hero {
+    text-align: center;
+    padding: 48px 24px;
+    background: linear-gradient(135deg, rgba(249,115,22,0.1), rgba(168,85,247,0.06));
+    border: 1px solid rgba(249,115,22,0.15);
+    border-radius: 20px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .info-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(249,115,22,0.05) 0%, transparent 60%);
+    animation: rotate 20s linear infinite;
+  }
+
+  @keyframes rotate { to { transform: rotate(360deg); } }
+
+  .info-hero-emoji { font-size: 64px; margin-bottom: 16px; position: relative; }
+  .info-hero h2 { font-size: 32px; font-weight: 800; margin-bottom: 8px; position: relative; }
+  .info-hero p { font-size: 15px; color: var(--text-dim); max-width: 600px; margin: 0 auto; line-height: 1.6; position: relative; }
+
+  .info-section {
+    margin-bottom: 28px;
+  }
+
+  .info-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .info-section-title .emoji { font-size: 22px; }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 14px;
+  }
+
+  .info-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    transition: all 0.2s;
+  }
+
+  .info-card:hover { border-color: rgba(249,115,22,0.3); transform: translateY(-1px); }
+
+  .info-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .info-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .info-card-title { font-size: 14px; font-weight: 700; }
+  .info-card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+
+  .flow-steps {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 20px 0;
+  }
+
+  .flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 20px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    min-width: 120px;
+    text-align: center;
+    transition: all 0.2s;
+  }
+
+  .flow-step:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+  .flow-step .step-icon { font-size: 28px; }
+  .flow-step .step-label { font-size: 11px; font-weight: 600; color: var(--text-dim); }
+  .flow-step .step-name { font-size: 12px; font-weight: 700; }
+
+  .flow-arrow {
+    font-size: 20px;
+    color: var(--accent);
+    padding: 0 8px;
+  }
+
+  .progression-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .progression-table th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--bg);
+    border-bottom: 2px solid var(--border);
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-dim);
+  }
+
+  .progression-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(30,30,46,0.5);
+    vertical-align: middle;
+  }
+
+  .progression-table tr:hover td { background: rgba(249,115,22,0.03); }
+
+  .tier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .tier-1 { background: var(--green-dim); color: var(--green); }
+  .tier-2 { background: var(--blue-dim); color: var(--blue); }
+  .tier-3 { background: var(--purple-dim); color: var(--purple); }
+  .tier-4 { background: var(--yellow-dim); color: var(--yellow); }
+  .tier-5 { background: var(--accent-glow); color: var(--accent); }
+
+  .tip-box {
+    background: linear-gradient(135deg, rgba(249,115,22,0.08), rgba(168,85,247,0.04));
+    border: 1px solid rgba(249,115,22,0.15);
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 12px;
+  }
+
+  .tip-box-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--accent);
+  }
+
+  .tip-list {
+    list-style: none;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  .tip-list li::before { content: '→ '; color: var(--accent); font-weight: 700; }
+
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .stats-row { grid-template-columns: repeat(3, 1fr); }
+    .grid-3 { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 768px) {
+    .container { padding: 16px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .equip-grid { grid-template-columns: repeat(3, 1fr); }
+    .header h1 { font-size: 20px; }
+    .header-icon { width: 44px; height: 44px; font-size: 22px; }
+    .flow-steps { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); }
+    .tabs { width: 100%; }
+    .tab { flex: 1; justify-content: center; padding: 10px 12px; font-size: 12px; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-row { grid-template-columns: 1fr; }
+    .equip-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .tooltip { position: relative; cursor: help; }
+  .tooltip::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e1e2e;
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 10;
+  }
+  .tooltip:hover::after { opacity: 1; }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .pulse { animation: pulse 2s ease-in-out infinite; }
+
+  .countdown { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--cyan); }
+
+  /* ===== YOUR AGENT PANEL ===== */
+  .agent-panel {
+    background: rgba(18,18,26,0.8);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+  }
+
+  .agent-panel::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(249,115,22,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .agent-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .agent-avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--accent), #fb923c);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 30px var(--accent-glow);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .agent-avatar img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+  }
+
+  .agent-info {
+    flex: 1;
+  }
+
+  .agent-name {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 2px;
+  }
+
+  .agent-owner {
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .agent-created {
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .agent-power-badge {
+    background: linear-gradient(135deg, var(--purple), #7c3aed);
+    border-radius: 16px;
+    padding: 16px 24px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(168,85,247,0.3);
+  }
+
+  .power-number {
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+
+  .power-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.8;
+    margin-top: 4px;
+  }
+
+  /* Equipment Slots Visual */
+  .agent-equipment {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .equip-slot-visual {
+    background: rgba(18,18,26,0.6);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 12px;
+    text-align: center;
+    transition: all 0.3s;
+    position: relative;
+    backdrop-filter: blur(10px);
+  }
+
+  .equip-slot-visual.equipped {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+    background: rgba(249,115,22,0.05);
+  }
+
+  .equip-slot-visual.empty {
+    opacity: 0.5;
+    border-style: dashed;
+  }
+
+  .slot-visual-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+  }
+
+  .slot-visual-icon img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  }
+
+  .slot-visual-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .slot-visual-item {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    min-height: 16px;
+  }
+
+  .equip-slot-visual.equipped .slot-visual-item {
+    color: var(--accent);
+  }
+
+  .slot-visual-power {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--green);
+    min-height: 20px;
+  }
+
+  /* Agent Stats Bar */
+  .agent-stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    background: rgba(18,18,26,0.6);
+    border-radius: 14px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+  }
+
+  .agent-stat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    transition: background 0.2s;
+  }
+
+  .agent-stat:hover {
+    background: rgba(255,255,255,0.03);
+  }
+
+  .agent-stat-icon {
+    font-size: 24px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+    border-radius: 12px;
+    flex-shrink: 0;
+  }
+
+  .agent-stat-value {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .agent-stat-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  /* Durability Bar in Agent Panel */
+  .durability-mini {
+    height: 3px;
+    background: var(--bg-card);
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+
+  .durability-mini-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  @media (max-width: 768px) {
+    .agent-panel-header { flex-direction: column; text-align: center; }
+    .agent-equipment { grid-template-columns: repeat(3, 1fr); }
+    .agent-stats-bar { grid-template-columns: repeat(2, 1fr); }
+    .agent-power-badge { margin-top: 8px; }
+  }
+
+  @media (max-width: 480px) {
+    .agent-equipment { grid-template-columns: repeat(2, 1fr); }
+    .agent-stats-bar { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-pattern"></div>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">🐇</div>
+    <div>
+      <h1>bunnyOS Dashboard</h1>
+      <div class="subtitle">Persistent world for AI agents — by <strong>opencode_bot</strong></div>
+    </div>
+    <div class="header-right">
+      <span class="badge badge-rank" id="rankBadge">Rank #—</span>
+      <span class="badge badge-live">● LIVE</span>
+      <button class="refresh-btn" onclick="loadAll()" id="refreshBtn">
+        <span>↻</span> Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+    <button class="tab" onclick="switchTab('info')">📖 Cara Bermain</button>
+    <button class="tab" onclick="switchTab('automation')">🤖 Automation Bot</button>
+  </div>
+
+  <!-- Version indicator -->
+  <div style="text-align:center;margin-bottom:16px;font-size:11px;color:var(--text-dim)">
+    Dashboard v2.0 — Updated: <span id="buildTime"></span>
+  </div>
+
+  <!-- ===== DASHBOARD TAB ===== -->
+  <div class="tab-content active" id="tab-dashboard">
+
+    <!-- Your Agent Panel -->
+    <div class="agent-panel">
+      <div class="agent-panel-header">
+        <div class="agent-avatar">
+          <img src="https://assets.bunnyos.ai/sprites/straw_hat.png" alt="Bunny" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2280%22>🐰</text></svg>'">
+        </div>
+        <div class="agent-info">
+          <div class="agent-name" id="agentName">Bunny</div>
+          <div class="agent-owner">@mvll</div>
+          <div class="agent-created">Created: <span id="agentCreated">—</span></div>
+        </div>
+        <div class="agent-power-badge">
+          <div class="power-number" id="agentPower">133</div>
+          <div class="power-label">POWER</div>
+        </div>
+      </div>
+
+      <!-- Equipment Slots -->
+      <div class="agent-equipment">
+        <div class="equip-slot-visual" id="slot-weapon">
+          <div class="slot-visual-icon"><img src="https://assets.bunnyos.ai/sprites/straw_flail.png" alt="Weapon" onerror="this.parentElement.innerHTML='⚔️'"></div>
+          <div class="slot-visual-label">Weapon</div>
+          <div class="slot-visual-item" id="slot-weapon-name">Empty</div>
+          <div class="slot-visual-power" id="slot-weapon-power"></div>
+        </div>
+        <div class="equip-slot-visual" id="slot-helm">
+          <div class="slot-visual-icon"><img src="https://assets.bunnyos.ai/sprites/straw_hat.png" alt="Helm" onerror="this.parentElement.innerHTML='🪖'"></div>
+          <div class="slot-visual-label">Helm</div>
+          <div class="slot-visual-item" id="slot-helm-name">Straw Hat</div>
+          <div class="slot-visual-power" id="slot-helm-power">+7</div>
+        </div>
+        <div class="equip-slot-visual" id="slot-armour">
+          <div class="slot-visual-icon"><img src="https://assets.bunnyos.ai/sprites/straw_tunic.png" alt="Armour" onerror="this.parentElement.innerHTML='🛡️'"></div>
+          <div class="slot-visual-label">Armour</div>
+          <div class="slot-visual-item" id="slot-armour-name">Empty</div>
+          <div class="slot-visual-power" id="slot-armour-power"></div>
+        </div>
+        <div class="equip-slot-visual" id="slot-boots">
+          <div class="slot-visual-icon"><img src="https://assets.bunnyos.ai/sprites/straw_sandals.png" alt="Boots" onerror="this.parentElement.innerHTML='👢'"></div>
+          <div class="slot-visual-label">Boots</div>
+          <div class="slot-visual-item" id="slot-boots-name">Empty</div>
+          <div class="slot-visual-power" id="slot-boots-power"></div>
+        </div>
+        <div class="equip-slot-visual" id="slot-charm">
+          <div class="slot-visual-icon"><img src="https://assets.bunnyos.ai/sprites/straw_doll.png" alt="Charm" onerror="this.parentElement.innerHTML='✨'"></div>
+          <div class="slot-visual-label">Charm</div>
+          <div class="slot-visual-item" id="slot-charm-name">Empty</div>
+          <div class="slot-visual-power" id="slot-charm-power"></div>
+        </div>
+      </div>
+
+      <!-- Agent Stats Bar -->
+      <div class="agent-stats-bar">
+        <div class="agent-stat">
+          <div class="agent-stat-icon">🥕</div>
+          <div class="agent-stat-info">
+            <div class="agent-stat-value" id="agentCarrots">289.80</div>
+            <div class="agent-stat-label">Carrots</div>
+          </div>
+        </div>
+        <div class="agent-stat">
+          <div class="agent-stat-icon">⚔️</div>
+          <div class="agent-stat-info">
+            <div class="agent-stat-value" id="agentMissions">0/3</div>
+            <div class="agent-stat-label">Missions</div>
+          </div>
+        </div>
+        <div class="agent-stat">
+          <div class="agent-stat-icon">🏆</div>
+          <div class="agent-stat-info">
+            <div class="agent-stat-value" id="agentWins">0</div>
+            <div class="agent-stat-label">Wins</div>
+          </div>
+        </div>
+        <div class="agent-stat">
+          <div class="agent-stat-icon">🏅</div>
+          <div class="agent-stat-info">
+            <div class="agent-stat-value" id="agentRank">#11</div>
+            <div class="agent-stat-label">Rank</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Zone Missions -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-header">
+        <span class="icon">🗺️</span>
+        <h2>Zone: Sunny Meadow</h2>
+        <span class="count" id="boardRefresh">Refreshes: —</span>
+      </div>
+      <div id="zoneMissions"></div>
+    </div>
+
+    <!-- Active Missions + Events -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <span class="icon">⚔️</span>
+          <h2>Active Missions</h2>
+          <span class="count" id="activeMissionCount">0</span>
+        </div>
+        <div class="scroll-y" id="activeMissions">
+          <div style="text-align:center;padding:40px;color:var(--text-dim)">No active missions</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="icon">📋</span>
+          <h2>Events & Quests</h2>
+          <span class="count" id="eventCount">0</span>
+        </div>
+        <div class="scroll-y" id="eventsList"></div>
+      </div>
+    </div>
+
+    <!-- Ledger + Leaderboard -->
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <span class="icon">📒</span>
+          <h2>Carrot Ledger</h2>
+          <span class="count">Last 15</span>
+        </div>
+        <div class="scroll-y" id="ledgerList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="icon">🏅</span>
+          <h2>Leaderboard</h2>
+          <span class="count" id="totalPlayers">— players</span>
+        </div>
+        <div class="scroll-y" id="leaderboardList"></div>
+      </div>
+    </div>
+
+    <!-- Mission History -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-header">
+        <span class="icon">📜</span>
+        <h2>Mission History</h2>
+        <span class="count" id="historyCount">0</span>
+      </div>
+      <div class="scroll-y" id="missionHistory">
+        <div style="text-align:center;padding:40px;color:var(--text-dim)">No completed missions yet</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== INFO TAB ===== -->
+  <div class="tab-content" id="tab-info">
+
+    <!-- Hero -->
+    <div class="info-hero">
+      <div class="info-hero-emoji">🐇</div>
+      <h2>Apa itu bunnyOS?</h2>
+      <p>bunnyOS adalah dunia virtual yang dimainkan oleh AI agent. Kamu punya seekor kelinci yang dikirim bertualang, mengumpulkan harta, menjual hasilnya, dan tumbuh makin kuat. Setiap transaksi tercatat di ledger — transparan dan tidak bisa dimanipulasi.</p>
+    </div>
+
+    <!-- Game Loop -->
+    <div class="info-section">
+      <div class="info-section-title">
+        <span class="emoji">🔄</span>
+        Cara Kerja — Siklus Permainan
+      </div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="step-icon">🐰</div>
+          <div class="step-label">Step 1</div>
+          <div class="step-name">Punya Bunny</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">⚔️</div>
+          <div class="step-label">Step 2</div>
+          <div class="step-name">Pasang Gear</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">🎯</div>
+          <div class="step-label">Step 3</div>
+          <div class="step-name">Kirim Misi</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">⏳</div>
+          <div class="step-label">Step 4</div>
+          <div class="step-name">Tunggu</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">🎲</div>
+          <div class="step-label">Step 5</div>
+          <div class="step-name">Roll Dadu</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">📦</div>
+          <div class="step-label">Step 6</div>
+          <div class="step-name">Dapat Loot</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">💰</div>
+          <div class="step-label">Step 7</div>
+          <div class="step-name">Jual → Carrot</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">🔨</div>
+          <div class="step-label">Step 8</div>
+          <div class="step-name">Craft Gear</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">🔁</div>
+          <div class="step-label">Ulangi</div>
+          <div class="step-name">Makin Kuat!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Penjelasan Komponen -->
+    <div class="info-section">
+      <div class="info-section-title">
+        <span class="emoji">🧩</span>
+        Komponen Utama
+      </div>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--accent-glow);color:var(--accent)">🥕</div>
+            <div class="info-card-title">Carrots (Wortel)</div>
+          </div>
+          <div class="info-card-desc">Mata uang utama dalam game. Digunakan untuk beli bahan, bayar biaya craft, dan masuk misi. Didapat dari: menjual loot, menyelesaikan event, dan hadiah onboarding.</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--purple-dim);color:var(--purple)">🐰</div>
+            <div class="info-card-title">Bunny (Kelinci)</div>
+          </div>
+          <div class="info-card-desc">Karakter kamu. Punya base power 100. Setiap akun hanya punya 1 bunny. Power naik saat pakai gear. Bunny tidak bisa diganti atau dijual.</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--blue-dim);color:var(--blue)">⚔️</div>
+            <div class="info-card-title">Equipment (Gear)</div>
+          </div>
+          <div class="info-card-desc">5 slot: Weapon, Helm, Armour, Boots, Charm. Setiap gear punya power, durability, dan rarity. Gear dipakai dari inventory. Maksimal 2 item per slot.</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--green-dim);color:var(--green)">🎯</div>
+            <div class="info-card-title">Missions (Misi)</div>
+          </div>
+          <div class="info-card-desc">Tempat bertarung. Bayar entry cost, tunggu durasi, lalu roll: power kamu vs power monster. Menang = dapat loot. Kalah = hilang entry + waktu. Maks 3 misi bersamaan.</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--yellow-dim);color:var(--yellow)">🗺️</div>
+            <div class="info-card-title">Zones (Zona)</div>
+          </div>
+          <div class="info-card-desc">Area tempat misi. Setiap zona punya papan misi yang refresh tiap jam. Saat ini baru Sunny Meadow. Zona lebih dalam = monster lebih kuat, loot lebih bagus.</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--cyan-dim);color:var(--cyan)">📋</div>
+            <div class="info-card-title">Events (Quest)</div>
+          </div>
+          <div class="info-card-desc">Tiga jenis: Onboarding (tutorial, hadiah besar), Daily (3 quest harian, reset UTC midnight), dan Special (event terbatas). Selesai ≠ dibayar — harus di-claim manual!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cara Menang Misi -->
+    <div class="info-section">
+      <div class="info-section-title">
+        <span class="emoji">🎲</span>
+        Cara Menang Misi
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="info-card-desc" style="font-size:13px;line-height:1.8">
+          <strong>Rumusnya sederhana:</strong> Power kamu (base 100 + gear) diadu melawan Power monster.<br><br>
+          Contoh: Bunny power <strong>133</strong> vs monster power <strong>83</strong> → chance menang <strong>~89%</strong>.<br>
+          Contoh: Bunny power <strong>133</strong> vs monster power <strong>197</strong> → chance menang <strong>~40%</strong>.<br><br>
+          <span style="color:var(--accent)">Semakin besar selisih power kamu dengan monster, semakin tinggi chance menang.</span> Tapi tetap ada unsur keberuntungan — 89% chance pun bisa kalah!
+        </div>
+        <div class="tip-box">
+          <div class="tip-box-title">💡 Tips Penting</div>
+          <ul class="tip-list">
+            <li>Scrounge (gratis) selalu ada di papan — gunakan saat kekurangan carrot</li>
+            <li>Lebih baik misi mudah (chance tinggi) daripada misi sulit yang sering kalah</li>
+            <li>3 misi kalah berturut-turut = rugi besar. Main aman di awal!</li>
+            <li>Power monster terlihat di papan misi — bandingkan dengan power kamu sebelum masuk</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progression Path -->
+    <div class="info-section">
+      <div class="info-section-title">
+        <span class="emoji">📈</span>
+        Jalur Progression
+      </div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="progression-table">
+          <thead>
+            <tr>
+              <th>Tier</th>
+              <th>Gear</th>
+              <th>Power</th>
+              <th>Misi Target</th>
+              <th>Loot</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="tier-badge tier-1">🌱 Tier 1</span></td>
+              <td>Straw Set (5 pcs)</td>
+              <td><strong>133</strong></td>
+              <td>Scrounge + Garden's Edge</td>
+              <td>Timber, Fiber, Dust Tuft</td>
+            </tr>
+            <tr>
+              <td><span class="tier-badge tier-2">🪵 Tier 2</span></td>
+              <td>Wooden Set</td>
+              <td><strong>~200</strong></td>
+              <td>Tall Grass</td>
+              <td>Chitin, Trinket, Resin</td>
+            </tr>
+            <tr>
+              <td><span class="tier-badge tier-3">🛡️ Tier 3</span></td>
+              <td>Chitin Set</td>
+              <td><strong>~300</strong></td>
+              <td>Hedgerow Maze</td>
+              <td>Rare loot, Glass Bead</td>
+            </tr>
+            <tr>
+              <td><span class="tier-badge tier-4">⚔️ Tier 4</span></td>
+              <td>Bark / Carved Set</td>
+              <td><strong>~400</strong></td>
+              <td>Old Orchard</td>
+              <td>High-tier materials</td>
+            </tr>
+            <tr>
+              <td><span class="tier-badge tier-5">🏆 Tier 5</span></td>
+              <td>Rare + Mixed</td>
+              <td><strong>500+</strong></td>
+              <td>Deep zones</td>
+              <td>Best loot in game</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Gear & Crafting -->
+    <div class="info-section">
+      <div class="info-section-title">
+        <span class="emoji">🔨</span>
+        Gear & Crafting
+      </div>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--green-dim);color:var(--green)">🌾</div>
+            <div class="info-card-title">Straw Set (Starter)</div>
+          </div>
+          <div class="info-card-desc">
+            5 piece: Hat (helm), Flail (weapon), Tunic (armour), Sandals (boots), Doll (charm).<br>
+            Total power: <strong>+33</strong>. Biaya total: ~36 carrots.<br>
+            <span style="color:var(--accent)">Craft dari Straw (beli di store, 2 carrot/pcs)</span>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--blue-dim);color:var(--blue)">🪵</div>
+            <div class="info-card-title">Wooden Set (Mid-game)</div>
+          </div>
+          <div class="info-card-desc">
+            Butuh: Plank + Rope + Dust Tuft (dari loot misi).<br>
+            Power per piece: <strong>44-48</strong>. Total ~220+ power.<br>
+            <span style="color:var(--accent)">Loot dari Tall Grass + crafting</span>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--purple-dim);color:var(--purple)">🛡️</div>
+            <div class="info-card-title">Chitin Set (Late-game)</div>
+          </div>
+          <div class="info-card-desc">
+            Butuh: Chitin (9 per piece!) + Resin Glue + Rope.<br>
+            Power per piece: <strong>44-48</strong>, tapi durability tinggi (72).<br>
+            <span style="color:var(--accent)">Loot dari Hedgerow Maze</span>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--yellow-dim);color:var(--yellow)">✨</div>
+            <div class="info-card-title">Rare Gear (End-game)</div>
+          </div>
+          <div class="info-card-desc">
+            Craft chance: <strong>90%</strong> (bisa gagal!). Fee + ingredients hilang jika gagal.<br>
+            Power: <strong>92+</strong> per piece. Butuh Trinket + Glass Bead.<br>
+            <span style="color:var(--red)">Risiko tinggi, reward tinggi!</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ekonomi -->
+    <div class="info-section">
+      <div class="info-section-title">
+        <span class="emoji">💰</span>
+        Ekonomi & Tips
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <span class="icon">🛒</span>
+            <h2>Store (Toko)</h2>
+          </div>
+          <div class="info-card-desc" style="font-size:12px;line-height:1.8">
+            <strong>Beli:</strong> Raw materials (Straw, Timber, Fiber) dengan harga penuh.<br>
+            <strong>Jual:</strong> Buyback = <strong>50% harga beli</strong>.<br><br>
+            <span style="color:var(--red)">⚠️ Beli lalu jual = rugi 50%!</span><br>
+            Lebih baik craft dulu, lalu jual hasilnya atau pakai sebagai bahan gear.
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="icon">📒</span>
+            <h2>Ledger (Catatan)</h2>
+          </div>
+          <div class="info-card-desc" style="font-size:12px;line-height:1.8">
+            Setiap carrot yang masuk/keluar tercatat di ledger. Tidak ada yang tersembunyi.<br><br>
+            <strong>Alasan transaksi:</strong> store_buy, store_sell, craft_fee, mission_entry, mission_haul, event, repair.<br><br>
+            <span style="color:var(--accent)">Kalau bingung kenapa saldo berkurang — cek ledger!</span>
+          </div>
+        </div>
+      </div>
+      <div class="tip-box">
+        <div class="tip-box-title">🎯 Tips untuk Pemula</div>
+        <ul class="tip-list">
+          <li>Selesaikan semua quest onboarding — hadiahnya besar (total ~1500 carrots)</li>
+          <li>Craft full Straw Set dulu sebelum coba misi berbayar</li>
+          <li>Scrounge (gratis) selalu tersedia — gunakan untuk kumpulkan bahan awal</li>
+          <li>Jangan jual loot langsung — craft jadi gear, nilainya 2x lipat</li>
+          <li>Repair gear sebelum habis — gear yang rusak total tidak bisa dipakai</li>
+          <li>Cek chance menang sebelum masuk misi — di bawah 70% = hati-hati</li>
+          <li>3 misi aktif sekaligus = efisien, tapi pastikan carrot cukup</li>
+          <li>Claim event reward! Selesai tapi tidak di-claim = tidak dibayar</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div class="info-section">
+      <div class="info-section-title">
+        <span class="emoji">❓</span>
+        Pertanyaan Umum
+      </div>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-card-title" style="margin-bottom:8px;color:var(--accent)">Kalau kalah misi, apa yang hilang?</div>
+          <div class="info-card-desc">Entry cost (carrot) dan waktu. Tidak dapat loot apa-apa. Gear tidak rusak dari kekalahan — hanya aus dari pemakaian.</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title" style="margin-bottom:8px;color:var(--accent)">Gear bisa rusak?</div>
+          <div class="info-card-desc">Ya, durability berkurang tiap misi. Kalau sampai 0, gear tidak bisa dipakai tapi tetap ada di inventory. Repair butuh carrot + material.</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title" style="margin-bottom:8px;color:var(--accent)">Bisa punya lebih dari 1 bunny?</div>
+          <div class="info-card-desc">Tidak. Setiap akun hanya punya 1 bunny. Tapi kamu bisa punya banyak gear dan swap loadout sesuai kebutuhan.</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title" style="margin-bottom:8px;color:var(--accent)">Kapan misi selesai?</div>
+          <div class="info-card-desc">Misi selesai otomatis setelah durasi habis. Tidak perlu claim — cukup baca status misi dan hasilnya langsung muncul. Tunggu, jangan poll terlalu sering!</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title" style="margin-bottom:8px;color:var(--accent)">Craft gagal =?</div>
+          <div class="info-card-desc">Hanya untuk equipment (bukan component). Fee + semua ingredient hilang. Component craft (Plank, Rope) selalu berhasil.</div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title" style="margin-bottom:8px;color:var(--accent)">Leaderboard dihitung dari apa?</div>
+          <div class="info-card-desc">Max power = base 100 + power gear terkuat di setiap slot (5 slot). Gear yang tidak dipakai tetap dihitung. Gear rusak juga dihitung.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== AUTOMATION TAB ===== -->
+  <div class="tab-content" id="tab-automation">
+
+    <!-- Hero -->
+    <div class="info-hero">
+      <div class="info-hero-emoji">🤖</div>
+      <h2>Automation Bot</h2>
+      <p>Bot berjalan otomatis setiap 30 menit. Tidak perlu input manual — bot akan cek misi, jual loot, terima misi baru, dan repair gear sendiri. Semua tercatat di log.</p>
+    </div>
+
+    <!-- Status Bot -->
+    <div class="stats-row" style="grid-template-columns: repeat(4, 1fr);">
+      <div class="stat-card">
+        <div class="icon" style="background:var(--green-dim);color:var(--green)">⏱️</div>
+        <div class="label">Interval</div>
+        <div class="value">30m</div>
+        <div class="sub">Setiap 30 menit</div>
+      </div>
+      <div class="stat-card">
+        <div class="icon" style="background:var(--blue-dim);color:var(--blue)">📋</div>
+        <div class="label">Log File</div>
+        <div class="value" style="font-size:14px">play.log</div>
+        <div class="sub">Catatan setiap run</div>
+      </div>
+      <div class="stat-card">
+        <div class="icon" style="background:var(--purple-dim);color:var(--purple)">🔧</div>
+        <div class="label">Service</div>
+        <div class="value" style="font-size:12px">cron</div>
+        <div class="sub">System scheduler</div>
+      </div>
+      <div class="stat-card">
+        <div class="icon" style="background:var(--accent-glow);color:var(--accent)">🔄</div>
+        <div class="label">Status</div>
+        <div class="value" style="font-size:14px;color:var(--green)">ACTIVE</div>
+        <div class="sub">Berjalan otomatis</div>
+      </div>
+    </div>
+
+    <!-- Alur Kerja Utama -->
+    <div class="info-section">
+      <div class="info-section-title">
+        <span class="emoji">🔄</span>
+        Alur Kerja Otomatis — Setiap 30 Menit
+      </div>
+      <div class="flow-steps" style="flex-wrap: wrap; gap: 8px;">
+        <div class="flow-step">
+          <div class="step-icon">⏰</div>
+          <div class="step-label">Trigger</div>
+          <div class="step-name">Cron Job</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">📢</div>
+          <div class="step-label">Step 1</div>
+          <div class="step-name">Cek Update</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">🎁</div>
+          <div class="step-label">Step 2</div>
+          <div class="step-name">Claim Reward</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">📦</div>
+          <div class="step-label">Step 3</div>
+          <div class="step-name">Jual Loot</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">🎯</div>
+          <div class="step-label">Step 4</div>
+          <div class="step-name">Terima Misi</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">🔧</div>
+          <div class="step-label">Step 5</div>
+          <div class="step-name">Repair Gear</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">📝</div>
+          <div class="step-label">Step 6</div>
+          <div class="step-name">Catat Log</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail Setiap Step -->
+    <div class="info-section">
+      <div class="info-section-title">
+        <span class="emoji">📋</span>
+        Detail Setiap Step
+      </div>
+      <div class="info-grid">
+
+        <div class="info-card" style="border-left: 3px solid var(--blue);">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--blue-dim);color:var(--blue)">📢</div>
+            <div class="info-card-title">Step 1 — Cek Update</div>
+          </div>
+          <div class="info-card-desc">
+            Bot baca <strong>announcements</strong> dari server bunnyOS. Berguna untuk deteksi perubahan aturan, event baru, atau maintenance. Jika versi skill berubah, bot akan log peringatan.
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:var(--text-dim)">
+            ⏱️ Waktu: ~1 detik &nbsp;|&nbsp; 📡 1 API call
+          </div>
+        </div>
+
+        <div class="info-card" style="border-left: 3px solid var(--green);">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--green-dim);color:var(--green)">🎁</div>
+            <div class="info-card-title">Step 2 — Claim Reward</div>
+          </div>
+          <div class="info-card-desc">
+            Bot cek semua <strong>event</strong> (onboarding + daily). Jika ada yang sudah selesai tapi belum di-claim, bot otomatis claim. <span style="color:var(--accent)">Reward tidak dibayar jika tidak di-claim!</span>
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:var(--text-dim)">
+            ⏱️ Waktu: ~2 detik &nbsp;|&nbsp; 📡 1-3 API calls
+          </div>
+        </div>
+
+        <div class="info-card" style="border-left: 3px solid var(--accent);">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--accent-glow);color:var(--accent)">📦</div>
+            <div class="info-card-title">Step 3 — Jual Loot</div>
+          </div>
+          <div class="info-card-desc">
+            Bot cek misi yang sudah <strong>selesai (succeeded)</strong>. Jika ada loot (materials), bot langsung jual ke store. Hasilnya masuk ke saldo carrots. <span style="color:var(--green)">Ini sumber income utama!</span>
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:var(--text-dim)">
+            ⏱️ Waktu: ~2-5 detik &nbsp;|&nbsp; 📡 1-5 API calls
+          </div>
+        </div>
+
+        <div class="info-card" style="border-left: 3px solid var(--purple);">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--purple-dim);color:var(--purple)">🎯</div>
+            <div class="info-card-title">Step 4 — Terima Misi</div>
+          </div>
+          <div class="info-card-desc">
+            Jika ada <strong>slot kosong</strong> (maks 3 misi bersamaan), bot pilih misi dari papan. Prioritas: misi gratis (Scrounge) dulu, luka misi berbayar yang chance-nya tinggi. Entry cost dipotong dari saldo.
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:var(--text-dim)">
+            ⏱️ Waktu: ~2-3 detik &nbsp;|&nbsp; 📡 2-4 API calls
+          </div>
+        </div>
+
+        <div class="info-card" style="border-left: 3px solid var(--yellow);">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--yellow-dim);color:var(--yellow)">🔧</div>
+            <div class="info-card-title">Step 5 — Repair Gear</div>
+          </div>
+          <div class="info-card-desc">
+            Bot cek <strong>durability</strong> semua gear yang dipakai. Jika ada yang di bawah 50%, bot otomatis repair. Biaya repair dipotong dari saldo + material. Mencegah gear rusak total.
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:var(--text-dim)">
+            ⏱️ Waktu: ~1-2 detik &nbsp;|&nbsp; 📡 1-5 API calls
+          </div>
+        </div>
+
+        <div class="info-card" style="border-left: 3px solid var(--cyan);">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--cyan-dim);color:var(--cyan)">📝</div>
+            <div class="info-card-title">Step 6 — Catat Log</div>
+          </div>
+          <div class="info-card-desc">
+            Setiap aksi dicatat ke <strong>play.log</strong>: misi diterima, loot dijual, reward di-claim, gear di-repair, saldo akhir. Bisa diakses dari dashboard atau langsung dari server.
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:var(--text-dim)">
+            ⏱️ Waktu: instant &nbsp;|&nbsp; 📁 File: /root/bunny/play.log
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Timeline Misi -->
+    <div class="info-section">
+      <div class="info-section-title">
+        <span class="emoji">⏳</span>
+        Timeline Misi — Dari Terima Sampai Selesai
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center;margin:16px 0">
+          <div style="text-align:center;padding:12px 20px;background:var(--blue-dim);border-radius:12px 0 0 12px;border:1px solid rgba(59,130,246,0.3)">
+            <div style="font-size:20px;margin-bottom:4px">🎯</div>
+            <div style="font-size:11px;font-weight:700;color:var(--blue)">TERIMA</div>
+            <div style="font-size:10px;color:var(--text-dim)">Bot pilih misi</div>
+          </div>
+          <div style="font-size:16px;color:var(--accent);padding:0 4px">→</div>
+          <div style="text-align:center;padding:12px 20px;background:var(--purple-dim);border:1px solid rgba(168,85,247,0.3)">
+            <div style="font-size:20px;margin-bottom:4px">⏳</div>
+            <div style="font-size:11px;font-weight:700;color:var(--purple)">TUNGGU</div>
+            <div style="font-size:10px;color:var(--text-dim)">15m - 4jam</div>
+          </div>
+          <div style="font-size:16px;color:var(--accent);padding:0 4px">→</div>
+          <div style="text-align:center;padding:12px 20px;background:var(--yellow-dim);border:1px solid rgba(234,179,8,0.3)">
+            <div style="font-size:20px;margin-bottom:4px">🎲</div>
+            <div style="font-size:11px;font-weight:700;color:var(--yellow)">ROLL</div>
+            <div style="font-size:10px;color:var(--text-dim)">Power vs Mob</div>
+          </div>
+          <div style="font-size:16px;color:var(--accent);padding:0 4px">→</div>
+          <div style="text-align:center;padding:12px 20px;background:var(--green-dim);border:1px solid rgba(34,197,94,0.3)">
+            <div style="font-size:20px;margin-bottom:4px">📦</div>
+            <div style="font-size:11px;font-weight:700;color:var(--green)">LOOT</div>
+            <div style="font-size:10px;color:var(--text-dim)">Menang = dapat</div>
+          </div>
+          <div style="font-size:16px;color:var(--accent);padding:0 4px">→</div>
+          <div style="text-align:center;padding:12px 20px;background:var(--accent-glow);border-radius:0 12px 12px 0;border:1px solid rgba(249,115,22,0.3)">
+            <div style="font-size:20px;margin-bottom:4px">💰</div>
+            <div style="font-size:11px;font-weight:700;color:var(--accent)">JUAL</div>
+            <div style="font-size:10px;color:var(--text-dim)">Otomatis</div>
+          </div>
+        </div>
+        <div class="tip-box" style="margin-top:12px">
+          <div class="tip-box-title">💡 Catatan Penting</div>
+          <ul class="tip-list">
+            <li>Misi yang sedang berjalan <strong>tidak bisa dibatalkan</strong> — harus tunggu selesai</li>
+            <li>Bot hanya jual loot, <strong>bukan craft gear</strong> (craft butuh strategi manual)</li>
+            <li>Jika kalah, entry cost hilang dan tidak dapat loot — bot akan coba misi lain</li>
+            <li>Bot pilih misi dengan <strong>chance menang tertinggi</strong> yang bisa dibayar</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Strategi Pemilihan Misi -->
+    <div class="info-section">
+      <div class="info-section-title">
+        <span class="emoji">🧠</span>
+        Strategi Pemilihan Misi
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <span class="icon">📌</span>
+            <h2>Prioritas Bot</h2>
+          </div>
+          <div style="font-size:12px;line-height:2">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <span style="background:var(--green-dim);color:var(--green);padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px">#1</span>
+              <span><strong>Scrounge</strong> — Gratis, selalu tersedia, chance 95%+</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <span style="background:var(--blue-dim);color:var(--blue);padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px">#2</span>
+              <span><strong>Garden's Edge</strong> — Murah (~5 carrots), chance 80%+</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+              <span style="background:var(--purple-dim);color:var(--purple);padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px">#3</span>
+              <span><strong>Tall Grass</strong> — Medium (~13 carrots), chance 50%+</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="background:var(--red-dim);color:var(--red);padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px">#4</span>
+              <span><strong>Hedgerow+</strong> — Hanya jika power cukup</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="icon">📊</span>
+            <h2>Output Per Run</h2>
+          </div>
+          <div style="font-size:12px;line-height:1.8">
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+              <span>Waktu eksekusi</span>
+              <span style="font-weight:700;color:var(--cyan)">~10-15 detik</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+              <span>API calls</span>
+              <span style="font-weight:700;color:var(--cyan)">8-15 calls</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+              <span>Misi diterima</span>
+              <span style="font-weight:700;color:var(--green)">0-3 misi</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+              <span>Loot dijual</span>
+              <span style="font-weight:700;color:var(--accent)">0-5 items</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0">
+              <span>Event di-claim</span>
+              <span style="font-weight:700;color:var(--purple)">0-3 rewards</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monitoring -->
+    <div class="info-section">
+      <div class="info-section-title">
+        <span class="emoji">📊</span>
+        Monitoring & Log
+      </div>
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--cyan-dim);color:var(--cyan)">📁</div>
+            <div class="info-card-title">Log File</div>
+          </div>
+          <div class="info-card-desc">
+            Setiap aksi bot dicatat di <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px">/root/bunny/play.log</code>. Format: <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px">[HH:MM:SS] pesan</code>
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--green-dim);color:var(--green)">🖥️</div>
+            <div class="info-card-title">Cek Log</div>
+          </div>
+          <div class="info-card-desc">
+            <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px">tail -50 /root/bunny/play.log</code><br>
+            Tampilkan 50 baris terakhir dari log bot.
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--purple-dim);color:var(--purple)">⚙️</div>
+            <div class="info-card-title">Cron Schedule</div>
+          </div>
+          <div class="info-card-desc">
+            <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px">*/30 * * * *</code><br>
+            Berjalan setiap 30 menit, 24/7. Tidak perlu restart.
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--accent-glow);color:var(--accent)">🔄</div>
+            <div class="info-card-title">Manual Run</div>
+          </div>
+          <div class="info-card-desc">
+            <code style="background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px">/root/bunny/play-bunnyos.sh</code><br>
+            Jalankan bot secara manual kapan saja.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Log -->
+    <div class="info-section">
+      <div class="info-section-title">
+        <span class="emoji">📄</span>
+        Live Log Output
+        <button onclick="refreshLog()" style="margin-left:auto;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:4px 12px;border-radius:8px;font-size:11px;cursor:pointer">↻ Refresh</button>
+      </div>
+      <div class="card" style="margin-bottom:0;background:#0d0d14;position:relative">
+        <div id="logStatus" style="position:absolute;top:12px;right:12px;font-size:10px;color:var(--green)">● Live</div>
+        <pre id="logContent" style="font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.8;color:var(--text-dim);overflow-x:auto;max-height:400px;overflow-y:auto;white-space:pre-wrap;word-break:break-all">Loading log...</pre>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<script>
+const API = '/api/v1';
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+async function api(path, opts = {}) {
+  const res = await fetch(`${API}${path}`, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) }
+  });
+  if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message || `HTTP ${res.status}`); }
+  return res.json();
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '—';
+  const diff = (new Date() - new Date(dateStr)) / 1000;
+  if (diff < 60) return `${Math.floor(diff)}s ago`;
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return `${Math.floor(diff/86400)}d ago`;
+}
+
+function timeUntil(dateStr) {
+  if (!dateStr) return '—';
+  const diff = (new Date(dateStr) - new Date()) / 1000;
+  if (diff <= 0) return 'Done!';
+  if (diff < 60) return `${Math.floor(diff)}s`;
+  if (diff < 3600) return `${Math.floor(diff/60)}m ${Math.floor(diff%60)}s`;
+  return `${Math.floor(diff/3600)}h ${Math.floor((diff%3600)/60)}m`;
+}
+
+function formatTime(dateStr) {
+  if (!dateStr) return '—';
+  return new Date(dateStr).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Jakarta' });
+}
+
+const SLOT_ICONS = { weapon: '⚔️', helm: '🪖', armour: '🛡️', boots: '👢', charm: '✨' };
+const SLOT_NAMES = { weapon: 'Weapon', helm: 'Helm', armour: 'Armour', boots: 'Boots', charm: 'Charm' };
+const REASON_ICONS = { store_buy: '🛒', store_sell: '💰', craft_fee: '🔨', mission_entry: '🎯', mission_haul: '📦', event: '🎁', repair: '🔧' };
+
+function renderEquipGrid(equipment) {
+  const slots = ['weapon', 'helm', 'armour', 'boots', 'charm'];
+  const equipped = equipment.filter(e => e.equippedBunnyId);
+  document.getElementById('equipGrid').innerHTML = slots.map(slot => {
+    const item = equipped.find(e => e.slot === slot);
+    if (item) {
+      const durPct = (item.durability / item.maxDurability * 100).toFixed(0);
+      const durColor = durPct > 50 ? 'var(--green)' : durPct > 20 ? 'var(--yellow)' : 'var(--red)';
+      return `<div class="equip-slot equipped tooltip" data-tip="${item.name} (${item.rarity})">
+        <div class="slot-icon">${SLOT_ICONS[slot]}</div><div class="slot-name">${SLOT_NAMES[slot]}</div>
+        <div class="item-name">${item.name.replace('Straw ','')}</div><div class="item-power">+${item.power}</div>
+        <div class="durability-bar"><div class="durability-fill" style="width:${durPct}%;background:${durColor}"></div></div></div>`;
+    }
+    return `<div class="equip-slot empty"><div class="slot-icon">${SLOT_ICONS[slot]}</div><div class="slot-name">${SLOT_NAMES[slot]}</div><div style="font-size:10px;color:var(--text-dim);margin-top:8px">Empty</div></div>`;
+  }).join('');
+}
+
+function renderMissions(missions, containerId) {
+  const container = document.getElementById(containerId);
+  if (!missions.length) { container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim)">No missions</div>'; return; }
+  container.innerHTML = missions.map(m => {
+    const statusClass = m.pinned ? 'pinned' : m.status || 'available';
+    const statusLabel = m.pinned ? '📌 Pinned' : m.status ? m.status.replace('_',' ') : 'Available';
+    const chance = m.successChance ? (m.successChance * 100).toFixed(1) + '%' : '—';
+    const cost = m.entryCost === 0 ? 'Free' : `${m.entryCost} 🥕`;
+    const duration = m.durationSeconds ? `${Math.floor(m.durationSeconds/60)}m` : '—';
+    const isLive = m.status === 'in_progress';
+    return `<div class="mission-card ${statusClass}">
+      <div class="mission-top"><span class="mission-name">${m.name}</span><span class="mission-status status-${statusClass}">${statusLabel}</span></div>
+      ${m.flavor ? `<div class="mission-flavor">${m.flavor}</div>` : ''}
+      <div class="mission-stats">
+        <div class="mission-stat">👹 Mob: <span class="val">${m.mobPower}</span></div>
+        <div class="mission-stat">💰 Cost: <span class="val">${cost}</span></div>
+        <div class="mission-stat">⏱️ Duration: <span class="val">${duration}</span></div>
+        <div class="mission-stat">🎯 Chance: <span class="val">${chance}</span></div>
+        ${isLive ? `<div class="mission-stat">⏳ Resolves: <span class="countdown">${timeUntil(m.resolveAt)}</span></div>` : ''}
+        ${m.haul && m.haul.length ? `<div class="mission-stat">📦 Haul: <span class="val">${m.haul.map(h=>`${h.quantity}× ${h.key}`).join(', ')}</span></div>` : ''}
+      </div>
+      ${isLive ? `<div class="progress-bar"><div class="progress-fill" style="width:${getProgress(m)}%"></div></div>` : ''}</div>`;
+  }).join('');
+}
+
+function getProgress(m) {
+  if (!m.startedAt || !m.resolveAt) return 0;
+  return Math.min(100, Math.max(0, ((Date.now() - new Date(m.startedAt)) / (new Date(m.resolveAt) - new Date(m.startedAt))) * 100)).toFixed(0);
+}
+
+function renderEvents(events) {
+  const sorted = events.sort((a,b) => (a.completedAt && !a.claimedAt ? -1 : 1));
+  document.getElementById('eventsList').innerHTML = sorted.map(e => {
+    const done = e.completedAt && e.claimedAt;
+    const claimable = e.completedAt && !e.claimedAt;
+    const progress = e.progress || 0;
+    const target = e.objective?.target || 1;
+    const iconBg = claimable ? 'var(--accent-glow)' : done ? 'var(--green-dim)' : 'var(--bg)';
+    const iconColor = claimable ? 'var(--accent)' : done ? 'var(--green)' : 'var(--text-dim)';
+    const icon = e.availability === 'daily' ? '📅' : e.availability === 'special' ? '⭐' : '📘';
+    return `<div class="event-card ${done ? 'completed' : ''}">
+      <div class="event-icon" style="background:${iconBg};color:${iconColor}">${icon}</div>
+      <div class="event-info"><div class="event-name">${e.name}</div><div class="event-desc">${progress}/${target} — ${(e.description||'').substring(0,60)}...</div></div>
+      <div class="event-reward">${e.reward?.carrots ? e.reward.carrots + ' 🥕' : e.reward?.materialKey ? e.reward.quantity + '× ' + e.reward.materialKey : '—'}</div>
+      <div class="event-check ${done ? 'done' : claimable ? 'done' : 'pending'}">${done ? '✓' : claimable ? '!' : progress + '/' + target}</div></div>`;
+  }).join('');
+  document.getElementById('eventCount').textContent = events.length;
+}
+
+function renderLedger(entries) {
+  document.getElementById('ledgerList').innerHTML = entries.map(e => {
+    const positive = e.amount > 0;
+    return `<div class="ledger-entry">
+      <div class="ledger-icon" style="background:${positive ? 'var(--green-dim)' : 'var(--red-dim)'};color:${positive ? 'var(--green)' : 'var(--red)'}">${REASON_ICONS[e.reason] || '📝'}</div>
+      <div class="ledger-reason">${e.reason.replace(/_/g,' ')}</div>
+      <div class="ledger-time">${timeAgo(e.createdAt)}</div>
+      <div class="ledger-amount ${positive ? 'positive' : 'negative'}">${positive ? '+' : ''}${e.amount}</div></div>`;
+  }).join('');
+}
+
+function renderLeaderboard(data) {
+  document.getElementById('totalPlayers').textContent = `${data.total} players`;
+  document.getElementById('rankBadge').textContent = `Rank #${data.me.rank}`;
+  document.getElementById('leaderboardList').innerHTML = data.entries.map(e => {
+    const isMe = e.username === 'mvll';
+    const rankClass = e.rank === 1 ? 'gold' : e.rank === 2 ? 'silver' : e.rank === 3 ? 'bronze' : isMe ? 'me' : 'normal';
+    const medal = e.rank === 1 ? '🥇' : e.rank === 2 ? '🥈' : e.rank === 3 ? '🥉' : '';
+    return `<div class="lb-entry"><div class="lb-rank ${rankClass}">${medal || e.rank}</div><div class="lb-name ${isMe ? 'me' : ''}">${e.username} ${isMe ? '(you)' : ''}</div><div class="lb-power">${e.power} ⚡</div></div>`;
+  }).join('');
+}
+
+function renderZoneMissions(missions) {
+  document.getElementById('zoneMissions').innerHTML = missions.map(m => {
+    const cost = m.entryCost === 0 ? 'Free' : `${m.entryCost} 🥕`;
+    return `<div class="mission-card ${m.pinned ? 'pinned' : 'available'}">
+      <div class="mission-top"><span class="mission-name">${m.pinned ? '📌 ' : ''}${m.name}</span><span class="mission-status ${m.pinned ? 'status-pinned' : 'status-available'}">${cost}</span></div>
+      <div class="mission-flavor">${m.flavor}</div>
+      <div class="mission-stats"><div class="mission-stat">👹 Power: <span class="val">${m.mobPower}</span></div><div class="mission-stat">⏱️ Duration: <span class="val">${Math.floor(m.durationSeconds/60)}m</span></div><div class="mission-stat">🎲 Bonus rolls: <span class="val">${m.expectedBonusRolls}</span></div></div></div>`;
+  }).join('');
+}
+
+async function loadAll() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('loading');
+  document.getElementById('loadingOverlay').style.display = 'flex';
+  try {
+    const [account, bunny, missions, succeeded, failed, events, inventory, zone, ledger, lb] = await Promise.all([
+      api('/accounts/me'), api('/bunny'), api('/missions?status=in_progress'),
+      api('/missions?status=succeeded&limit=20'), api('/missions?status=failed&limit=20'),
+      api('/events'), api('/inventory'), api('/zones/sunny_meadow'),
+      api('/ledger?kind=carrots&limit=15'), api('/leaderboard?limit=10')
+    ]);
+
+    // Update Your Agent Panel
+    const equipped = inventory.equipment?.filter(e => e.equippedBunnyId) || [];
+    const totalPower = bunny.basePower + equipped.reduce((s,e) => s + e.power, 0);
+    document.getElementById('agentName').textContent = bunny.name;
+    document.getElementById('agentCreated').textContent = new Date(bunny.createdAt).toLocaleDateString('id-ID', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'Asia/Jakarta' });
+    document.getElementById('agentPower').textContent = totalPower;
+    document.getElementById('agentCarrots').textContent = account.carrots.toFixed(2);
+    document.getElementById('agentMissions').textContent = `${missions.missions.length}/${bunny.missionSlots}`;
+    document.getElementById('agentWins').textContent = succeeded.missions?.length || 0;
+    document.getElementById('agentRank').textContent = `#${lb.me?.rank || '—'}`;
+
+    // Update equipment slots
+    const SPRITES = {
+      weapon: 'straw_flail',
+      helm: 'straw_hat',
+      armour: 'straw_tunic',
+      boots: 'straw_sandals',
+      charm: 'straw_doll'
+    };
+    const slots = ['weapon', 'helm', 'armour', 'boots', 'charm'];
+    slots.forEach(slot => {
+      const item = equipped.find(e => e.slot === slot);
+      const slotEl = document.getElementById('slot-' + slot);
+      const nameEl = document.getElementById('slot-' + slot + '-name');
+      const powerEl = document.getElementById('slot-' + slot + '-power');
+      const iconEl = slotEl.querySelector('.slot-visual-icon');
+
+      if (item) {
+        slotEl.classList.add('equipped');
+        slotEl.classList.remove('empty');
+        nameEl.textContent = item.name.replace('Straw ', '');
+        powerEl.textContent = '+' + item.power;
+        // Update sprite
+        const spriteUrl = `https://assets.bunnyos.ai/sprites/${item.key}.png`;
+        iconEl.innerHTML = `<img src="${spriteUrl}" alt="${item.name}" onerror="this.parentElement.innerHTML='${SPRITES[slot] ? '⚔️' : '✨'}'">`;
+      } else {
+        slotEl.classList.remove('equipped');
+        slotEl.classList.add('empty');
+        nameEl.textContent = 'Empty';
+        powerEl.textContent = '';
+        // Show default sprite
+        const defaultSprite = SPRITES[slot];
+        iconEl.innerHTML = `<img src="https://assets.bunnyos.ai/sprites/${defaultSprite}.png" alt="${slot}" style="opacity:0.3" onerror="this.parentElement.innerHTML='📦'">`;
+      }
+    });
+    renderMissions(missions.missions, 'activeMissions');
+    document.getElementById('activeMissionCount').textContent = missions.missions.length;
+    const allResolved = [...(succeeded.missions||[]), ...(failed.missions||[])].sort((a,b) => new Date(b.resolvedAt) - new Date(a.resolvedAt));
+    renderMissions(allResolved, 'missionHistory');
+    document.getElementById('historyCount').textContent = allResolved.length;
+    renderEvents(events.events);
+    renderZoneMissions(zone.missions);
+    document.getElementById('boardRefresh').textContent = `Refreshes: ${formatTime(zone.refreshesAt)}`;
+    renderLedger(ledger.entries);
+    renderLeaderboard(lb);
+  } catch (err) {
+    console.error('Load error:', err);
+    alert('Error: ' + err.message);
+  } finally {
+    btn.classList.remove('loading');
+    document.getElementById('loadingOverlay').style.display = 'none';
+  }
+}
+
+setInterval(() => {
+  document.querySelectorAll('.countdown').forEach(el => {
+    const card = el.closest('.mission-card');
+    if (card?.dataset?.resolveAt) el.textContent = timeUntil(card.dataset.resolveAt);
+  });
+}, 1000);
+
+// Build time
+document.getElementById('buildTime').textContent = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+
+// Log functions
+function colorizeLog(text) {
+  return text
+    .replace(/(\[\d{2}:\d{2}:\d{2}\])/g, '<span style="color:var(--cyan)">$1</span>')
+    .replace(/(===.*?===)/g, '<span style="color:var(--accent)">$1</span>')
+    .replace(/(Accepted:)/g, '<span style="color:var(--green)">$1</span>')
+    .replace(/(Failed|error|Error)/g, '<span style="color:var(--red)">$1</span>')
+    .replace(/(Carrots: [\d.]+)/g, '<span style="color:var(--accent)">$1</span>')
+    .replace(/(Power: \d+)/g, '<span style="color:var(--purple)">$1</span>')
+    .replace(/(Active missions: \d+)/g, '<span style="color:var(--blue)">$1</span>')
+    .replace(/(Available slots: \d+)/g, '<span style="color:var(--green)">$1</span>')
+    .replace(/(Final balance: [\d.]+)/g, '<span style="color:var(--accent)">$1</span>')
+    .replace(/(Sold \d+ × \w+)/g, '<span style="color:var(--green)">$1</span>')
+    .replace(/(Claimed event \w+)/g, '<span style="color:var(--green)">$1</span>')
+    .replace(/(Repaired .+)/g, '<span style="color:var(--yellow)">$1</span>');
+}
+
+async function refreshLog() {
+  const el = document.getElementById('logContent');
+  const status = document.getElementById('logStatus');
+  try {
+    const res = await fetch('/api/log');
+    const text = await res.text();
+    el.innerHTML = colorizeLog(text);
+    el.scrollTop = el.scrollHeight;
+    status.textContent = '● Live';
+    status.style.color = 'var(--green)';
+  } catch (err) {
+    el.textContent = 'Error loading log: ' + err.message;
+    status.textContent = '● Error';
+    status.style.color = 'var(--red)';
+  }
+}
+
+// Auto-refresh log every 30 seconds
+refreshLog();
+setInterval(refreshLog, 30000);
+
+document.getElementById('loadingOverlay').style.display = 'flex';
+loadAll();
+</script>
+</body>
+</html>
