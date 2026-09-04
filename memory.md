@@ -1,6 +1,6 @@
 # Memory - bunnyOS Dashboard & Automation
 
-## Last Updated: 2026-09-03 (DARI SERVER VPS)
+## Last Updated: 2026-09-04 (DARI SERVER VPS)
 
 ### Session Overview
 - bunnyOS adalah game API untuk AI agent (bukan blockchain/crypto)
@@ -103,10 +103,31 @@ Browser → Caddy (HTTPS, port 443) → Proxy (Node.js, port 4664) → bunnyOS A
 
 - Log pakai timezone WIB (`TZ='Asia/Jakarta'`)
 - Auto-claim event rewards
-- Auto-sell hauls
+- Auto-sell materials dari inventory (bukan dari haul)
 - Auto-accept missions (prioritas: gratis → murah → chance tinggi)
 - Auto-repair gear
-- Error handling: log failed attempts
+- Error handling: log failed attempts dengan pesan asli
+
+### DARI SERVER VPS - Bug Fixes (2026-09-04)
+
+**play-bunnyos.sh:**
+1. `balance: error` setiap sell → Fix: cek HTTP status, tampilkan error asli
+2. Sell dari haul (item tidak ada di inventory) → Fix: jual dari inventory materials
+3. `while` loop subshell (variabel tidak ter-update) → Fix: pakai `<<< "$VAR"` (here-string)
+4. `sort -t, -k4 -n` tidak work pada JSON compact → Fix: pakai jq `sort_by(.mobPower)`
+5. `bc` error jika CHANCE null → Fix: tambah `2>/dev/null || echo "?"`
+6. Redundant fetch inventory → Fix: hapus duplikat
+7. Repair error tidak ter-log → Fix: cek `.error` field
+
+**index.html:**
+1. `switchTab()` pakai global `event` (tidak reliable) → Fix: pass `this` sebagai parameter
+2. Countdown timer tidak work → Fix: tambah `data-resolve-at` attribute
+3. `colorizeLog` tidak handle error baru → Fix: tambah pattern `Sell failed` & `Repair failed`
+
+**Key Insight:**
+- Haul items dari misi succeeded **tidak otomatis masuk ke inventory**
+- Haul hanya record hasil, bukan item yang bisa dijual
+- Item dijual dari inventory materials, bukan dari haul
 
 ### DARI SERVER VPS - Key Learnings
 

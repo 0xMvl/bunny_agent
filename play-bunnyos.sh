@@ -27,18 +27,21 @@ IN_PROGRESS=$(curl -s "$API/missions?status=in_progress" -H "$AUTH")
 ACTIVE_COUNT=$(echo "$IN_PROGRESS" | jq '.missions | length')
 log "Active missions: $ACTIVE_COUNT"
 
-# 4. Sell hauls from succeeded missions
-SUCCEEDED=$(curl -s "$API/missions?status=succeeded&limit=10" -H "$AUTH")
-echo "$SUCCEEDED" | jq -c '.missions[] | select(.haul != null and (.haul | length) > 0)' | while read mission; do
-  MNAME=$(echo "$mission" | jq -r '.name')
-  log "Selling haul from: $MNAME"
-  echo "$mission" | jq -c '.haul[]' | while read item; do
-    KEY=$(echo "$item" | jq -r '.key')
-    QTY=$(echo "$item" | jq -r '.quantity')
-    SELL_RESULT=$(curl -s -X POST "$API/items/$KEY/sell" -H "$AUTH" -H "Content-Type: application/json" -d "{\"quantity\":$QTY}")
-    CARROTS=$(echo "$SELL_RESULT" | jq -r '.carrots // "error"')
-    log "  Sold $QTY × $KEY → balance: $CARROTS"
-  done
+# 4. Sell materials from inventory
+INVENTORY=$(curl -s "$API/inventory" -H "$AUTH")
+echo "$INVENTORY" | jq -c '.materials[] | select(.quantity > 0)' | while read item; do
+  KEY=$(echo "$item" | jq -r '.key')
+  QTY=$(echo "$item" | jq -r '.quantity')
+  INAME=$(echo "$item" | jq -r '.name // .key')
+  HTTP_CODE=$(curl -s -o /tmp/sell_result.json -w "%{http_code}" -X POST "$API/items/$KEY/sell" -H "$AUTH" -H "Content-Type: application/json" -d "{\"quantity\":$QTY}")
+  SELL_RESULT=$(cat /tmp/sell_result.json)
+  if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "201" ]; then
+    CARROTS=$(echo "$SELL_RESULT" | jq -r '.carrots // .balance // "ok"')
+    log "  Sold $QTY × $INAME → balance: $CARROTS"
+  else
+    ERROR_MSG=$(echo "$SELL_RESULT" | jq -r '.message // "unknown error"')
+    log "  Sell failed $QTY × $INAME → HTTP $HTTP_CODE: $ERROR_MSG"
+  fi
 done
 
 # 5. Get current state
@@ -46,7 +49,6 @@ ACCOUNT=$(curl -s "$API/accounts/me" -H "$AUTH")
 CARROTS=$(echo "$ACCOUNT" | jq -r '.carrots')
 BUNNY=$(curl -s "$API/bunny" -H "$AUTH")
 SLOTS=$(echo "$BUNNY" | jq -r '.missionSlots')
-INVENTORY=$(curl -s "$API/inventory" -H "$AUTH")
 EQUIPPED_POWER=$(echo "$INVENTORY" | jq '[.equipment[] | select(.equippedBunnyId != null) | .power] | add // 0')
 TOTAL_POWER=$((100 + EQUIPPED_POWER))
 log "Carrots: $CARROTS | Power: $TOTAL_POWER | Slots: $SLOTS"
@@ -58,11 +60,10 @@ AVAILABLE_SLOTS=$((SLOTS - ACTIVE_COUNT))
 if [ "$AVAILABLE_SLOTS" -gt 0 ]; then
   log "Available slots: $AVAILABLE_SLOTS — looking for missions..."
 
-  # Get zone board
-  ZONE=$(curl -s "$API/zones/sunny_meadow" -H "$AUTH")
+  # Get zone board, sort by mobPower ascending (higher chance)
+  MISSIONS=$(curl -s "$API/zones/sunny_meadow" -H "$AUTH" | jq -c '[.missions[] | select(.pinned == true or .entryCost <= '"$CARROTS"')] | sort_by(.mobPower)[]')
 
-  # Sort missions by value (lower mob power = higher chance)
-  echo "$ZONE" | jq -c '.missions[] | select(.pinned == true or .entryCost <= '"$CARROTS"')' | sort -t, -k4 -n | while read mission; do
+  while read mission; do
     if [ "$AVAILABLE_SLOTS" -le 0 ]; then break; fi
 
     MID=$(echo "$mission" | jq -r '.id')
@@ -76,7 +77,8 @@ if [ "$AVAILABLE_SLOTS" -gt 0 ]; then
       STATUS=$(echo "$ACCEPT" | jq -r '.status // "error"')
       CHANCE=$(echo "$ACCEPT" | jq -r '.successChance // 0')
       if [ "$STATUS" = "in_progress" ]; then
-        log "Accepted: $MNAME (mob:$MOB, cost:$COST, chance:$(echo "$CHANCE * 100" | bc)%)"
+        CHANCE_PCT=$(echo "$CHANCE * 100" | bc 2>/dev/null || echo "?")
+        log "Accepted: $MNAME (mob:$MOB, cost:$COST, chance:${CHANCE_PCT}%)"
         CARROTS=$(echo "$CARROTS - $COST" | bc)
         AVAILABLE_SLOTS=$((AVAILABLE_SLOTS - 1))
       else
@@ -84,21 +86,27 @@ if [ "$AVAILABLE_SLOTS" -gt 0 ]; then
         log "Failed to accept $MNAME: $ERROR"
       fi
     fi
-  done
+  done <<< "$MISSIONS"
 else
   log "All $SLOTS mission slots busy"
 fi
 
 # 7. Repair equipped gear if durability low
-echo "$INVENTORY" | jq -c '.equipment[] | select(.equippedBunnyId != null and .durability < .maxDurability * 0.5)' | while read item; do
+REPAIR_ITEMS=$(echo "$INVENTORY" | jq -c '.equipment[] | select(.equippedBunnyId != null and .durability < .maxDurability * 0.5)')
+while read item; do
   IID=$(echo "$item" | jq -r '.id')
   INAME=$(echo "$item" | jq -r '.name')
   DUR=$(echo "$item" | jq -r '.durability')
   MAX=$(echo "$item" | jq -r '.maxDurability')
   REPAIR=$(curl -s -X POST "$API/inventory/$IID/repair" -H "$AUTH")
   COST=$(echo "$REPAIR" | jq -r '.fee // 0')
-  log "Repaired $INAME ($DUR/$MAX) → cost: $COST"
-done
+  STATUS=$(echo "$REPAIR" | jq -r '.error // empty')
+  if [ -n "$STATUS" ]; then
+    log "Repair failed $INAME ($DUR/$MAX): $STATUS"
+  else
+    log "Repaired $INAME ($DUR/$MAX) → cost: $COST"
+  fi
+done <<< "$REPAIR_ITEMS"
 
 # 8. Final balance
 FINAL=$(curl -s "$API/accounts/me" -H "$AUTH" | jq -r '.carrots')

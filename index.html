@@ -877,9 +877,9 @@
 
   <!-- Tabs -->
   <div class="tabs">
-    <button class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</button>
-    <button class="tab" onclick="switchTab('info')">📖 Cara Bermain</button>
-    <button class="tab" onclick="switchTab('automation')">🤖 Automation Bot</button>
+    <button class="tab active" onclick="switchTab('dashboard', this)">📊 Dashboard</button>
+    <button class="tab" onclick="switchTab('info', this)">📖 Cara Bermain</button>
+    <button class="tab" onclick="switchTab('automation', this)">🤖 Automation Bot</button>
   </div>
 
   <!-- Version indicator -->
@@ -1750,10 +1750,10 @@
 <script>
 const API = '/api/v1';
 
-function switchTab(tab) {
+function switchTab(tab, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
+  el.classList.add('active');
   document.getElementById('tab-' + tab).classList.add('active');
 }
 
@@ -1820,7 +1820,7 @@ function renderMissions(missions, containerId) {
     const cost = m.entryCost === 0 ? 'Free' : `${m.entryCost} 🥕`;
     const duration = m.durationSeconds ? `${Math.floor(m.durationSeconds/60)}m` : '—';
     const isLive = m.status === 'in_progress';
-    return `<div class="mission-card ${statusClass}">
+    return `<div class="mission-card ${statusClass}" ${isLive ? `data-resolve-at="${m.resolveAt}"` : ''}>
       <div class="mission-top"><span class="mission-name">${m.name}</span><span class="mission-status status-${statusClass}">${statusLabel}</span></div>
       ${m.flavor ? `<div class="mission-flavor">${m.flavor}</div>` : ''}
       <div class="mission-stats">
@@ -1990,6 +1990,8 @@ function colorizeLog(text) {
     .replace(/(Available slots: \d+)/g, '<span style="color:var(--green)">$1</span>')
     .replace(/(Final balance: [\d.]+)/g, '<span style="color:var(--accent)">$1</span>')
     .replace(/(Sold \d+ × \w+)/g, '<span style="color:var(--green)">$1</span>')
+    .replace(/(Sell failed \d+ × \w+)/g, '<span style="color:var(--red)">$1</span>')
+    .replace(/(Repair failed .+?):/g, '<span style="color:var(--red)">$1</span>:')
     .replace(/(Claimed event \w+)/g, '<span style="color:var(--green)">$1</span>')
     .replace(/(Repaired .+)/g, '<span style="color:var(--yellow)">$1</span>');
 }
