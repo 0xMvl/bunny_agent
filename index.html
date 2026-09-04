@@ -1446,8 +1446,8 @@
     <!-- Hero -->
     <div class="info-hero">
       <div class="info-hero-emoji">🤖</div>
-      <h2>Automation Bot</h2>
-      <p>Bot berjalan otomatis setiap 30 menit. Tidak perlu input manual — bot akan cek misi, jual loot, terima misi baru, dan repair gear sendiri. Semua tercatat di log.</p>
+      <h2>Automation Bot v2</h2>
+      <p>Bot berjalan otomatis setiap 30 menit. <strong>Fitur baru:</strong> auto equip gear, auto craft onboarding, smart material selling, dan optimized mission selection. Semua tercatat di log.</p>
     </div>
 
     <!-- Status Bot -->
@@ -1482,7 +1482,7 @@
     <div class="info-section">
       <div class="info-section-title">
         <span class="emoji">🔄</span>
-        Alur Kerja Otomatis — Setiap 30 Menit
+        Alur Kerja Otomatis v2 — Setiap 30 Menit
       </div>
       <div class="flow-steps" style="flex-wrap: wrap; gap: 8px;">
         <div class="flow-step">
@@ -1504,26 +1504,38 @@
         </div>
         <div class="flow-arrow">→</div>
         <div class="flow-step">
-          <div class="step-icon">📦</div>
+          <div class="step-icon">⚔️</div>
           <div class="step-label">Step 3</div>
+          <div class="step-name">Equip Gear</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">🔨</div>
+          <div class="step-label">Step 4</div>
+          <div class="step-name">Craft Onboarding</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">📦</div>
+          <div class="step-label">Step 5</div>
           <div class="step-name">Jual Loot</div>
         </div>
         <div class="flow-arrow">→</div>
         <div class="flow-step">
           <div class="step-icon">🎯</div>
-          <div class="step-label">Step 4</div>
+          <div class="step-label">Step 6</div>
           <div class="step-name">Terima Misi</div>
         </div>
         <div class="flow-arrow">→</div>
         <div class="flow-step">
           <div class="step-icon">🔧</div>
-          <div class="step-label">Step 5</div>
+          <div class="step-label">Step 7</div>
           <div class="step-name">Repair Gear</div>
         </div>
         <div class="flow-arrow">→</div>
         <div class="flow-step">
           <div class="step-icon">📝</div>
-          <div class="step-label">Step 6</div>
+          <div class="step-label">Step 8</div>
           <div class="step-name">Catat Log</div>
         </div>
       </div>
@@ -1563,13 +1575,44 @@
           </div>
         </div>
 
+        <div class="info-card" style="border-left: 3px solid var(--purple);background:linear-gradient(135deg,rgba(168,85,247,0.03),transparent)">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--purple-dim);color:var(--purple)">⚔️</div>
+            <div class="info-card-title">Step 3 — Equip Gear <span style="font-size:10px;color:var(--green);font-weight:600">BARU</span></div>
+          </div>
+          <div class="info-card-desc">
+            Bot otomatis <strong>equip semua gear</strong> yang tersedia di inventory. <span style="color:var(--accent)">Hanya berjalan saat tidak ada misi aktif</span> (loadout terkunci saat misi berlangsung). Power naik dari 100 ke 133+ setelah equip.
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:var(--text-dim)">
+            ⏱️ Waktu: ~2 detik &nbsp;|&nbsp; 📡 2 API calls &nbsp;|&nbsp; ⚠️ Syarat: 0 misi aktif
+          </div>
+        </div>
+
+        <div class="info-card" style="border-left: 3px solid var(--accent);background:linear-gradient(135deg,rgba(249,115,22,0.03),transparent)">
+          <div class="info-card-header">
+            <div class="info-card-icon" style="background:var(--accent-glow);color:var(--accent)">🔨</div>
+            <div class="info-card-title">Step 4 — Craft Onboarding <span style="font-size:10px;color:var(--green);font-weight:600">BARU</span></div>
+          </div>
+          <div class="info-card-desc">
+            Bot otomatis <strong>craft dan claim onboarding events</strong>:<br>
+            • Buy 12 Timber → <span style="color:var(--green)">+75 carrots</span><br>
+            • Craft 2 Planks → <span style="color:var(--green)">+100 carrots</span><br>
+            • Craft 2 Ropes → <span style="color:var(--green)">+75 carrots</span><br>
+            • Craft Slingshot → <span style="color:var(--green)">+375 carrots</span><br>
+            <span style="color:var(--accent)">Total: +625 carrots dari onboarding!</span>
+          </div>
+          <div style="margin-top:10px;font-size:11px;color:var(--text-dim)">
+            ⏱️ Waktu: ~10 detik &nbsp;|&nbsp; 📡 5-10 API calls &nbsp;|&nbsp; ⚠️ Syarat: 0 misi aktif
+          </div>
+        </div>
+
         <div class="info-card" style="border-left: 3px solid var(--accent);">
           <div class="info-card-header">
             <div class="info-card-icon" style="background:var(--accent-glow);color:var(--accent)">📦</div>
-            <div class="info-card-title">Step 3 — Jual Loot</div>
+            <div class="info-card-title">Step 5 — Jual Loot (Smart)</div>
           </div>
           <div class="info-card-desc">
-            Bot cek misi yang sudah <strong>selesai (succeeded)</strong>. Jika ada loot (materials), bot langsung jual ke store. Hasilnya masuk ke saldo carrots. <span style="color:var(--green)">Ini sumber income utama!</span>
+            Bot cek inventory dan jual materials. <strong>Fitur baru:</strong> Bot menyimpan 5 item crafting materials (timber, fiber, straw, dust_tuft, patch_scraps, fang, chitin, trinket) untuk crafting. Hanya jual excess.
           </div>
           <div style="margin-top:10px;font-size:11px;color:var(--text-dim)">
             ⏱️ Waktu: ~2-5 detik &nbsp;|&nbsp; 📡 1-5 API calls
@@ -1579,10 +1622,10 @@
         <div class="info-card" style="border-left: 3px solid var(--purple);">
           <div class="info-card-header">
             <div class="info-card-icon" style="background:var(--purple-dim);color:var(--purple)">🎯</div>
-            <div class="info-card-title">Step 4 — Terima Misi</div>
+            <div class="info-card-title">Step 6 — Terima Misi (Optimized)</div>
           </div>
           <div class="info-card-desc">
-            Jika ada <strong>slot kosong</strong> (maks 3 misi bersamaan), bot pilih misi dari papan. Prioritas: misi gratis (Scrounge) dulu, luka misi berbayar yang chance-nya tinggi. Entry cost dipotong dari saldo.
+            Jika ada <strong>slot kosong</strong> (maks 3 misi bersamaan), bot pilih misi dari papan. <strong>Fitur baru:</strong> Prioritas misi gratis (cost=0), skip misi mahal (>15 carrots), filter berdasarkan affordability.
           </div>
           <div style="margin-top:10px;font-size:11px;color:var(--text-dim)">
             ⏱️ Waktu: ~2-3 detik &nbsp;|&nbsp; 📡 2-4 API calls
@@ -1592,29 +1635,59 @@
         <div class="info-card" style="border-left: 3px solid var(--yellow);">
           <div class="info-card-header">
             <div class="info-card-icon" style="background:var(--yellow-dim);color:var(--yellow)">🔧</div>
-            <div class="info-card-title">Step 5 — Repair Gear</div>
+            <div class="info-card-title">Step 7 — Repair Gear</div>
           </div>
           <div class="info-card-desc">
-            Bot cek <strong>durability</strong> semua gear yang dipakai. Jika ada yang di bawah 50%, bot otomatis repair. Biaya repair dipotong dari saldo + material. Mencegah gear rusak total.
+            Bot cek <strong>durability</strong> semua gear yang dipakai. Jika ada yang di bawah 50%, bot otomatis repair. <span style="color:var(--accent)">Hanya berjalan saat tidak ada misi aktif</span>. Mencegah gear rusak total.
           </div>
           <div style="margin-top:10px;font-size:11px;color:var(--text-dim)">
-            ⏱️ Waktu: ~1-2 detik &nbsp;|&nbsp; 📡 1-5 API calls
+            ⏱️ Waktu: ~1-2 detik &nbsp;|&nbsp; 📡 1-5 API calls &nbsp;|&nbsp; ⚠️ Syarat: 0 misi aktif
           </div>
         </div>
 
         <div class="info-card" style="border-left: 3px solid var(--cyan);">
           <div class="info-card-header">
             <div class="info-card-icon" style="background:var(--cyan-dim);color:var(--cyan)">📝</div>
-            <div class="info-card-title">Step 6 — Catat Log</div>
+            <div class="info-card-title">Step 8 — Catat Log</div>
           </div>
           <div class="info-card-desc">
-            Setiap aksi dicatat ke <strong>play.log</strong>: misi diterima, loot dijual, reward di-claim, gear di-repair, saldo akhir. Bisa diakses dari dashboard atau langsung dari server.
+            Setiap aksi dicatat ke <strong>play.log</strong>: misi diterima, loot dijual, reward di-claim, gear di-repair, gear di-equip, onboarding di-craft, saldo akhir. Bisa diakses dari dashboard atau langsung dari server.
           </div>
           <div style="margin-top:10px;font-size:11px;color:var(--text-dim)">
             ⏱️ Waktu: instant &nbsp;|&nbsp; 📁 File: /root/bunny/play.log
           </div>
         </div>
 
+      </div>
+    </div>
+
+    <!-- Loadout Lock Info -->
+    <div class="info-section">
+      <div class="info-section-title">
+        <span class="emoji">🔒</span>
+        Loadout Lock — Info Penting
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="info-card-desc" style="font-size:13px;line-height:1.8">
+          <strong>Apa itu Loadout Lock?</strong><br>
+          Saat misi sedang berjalan (in_progress), <span style="color:var(--red)">equipment tidak bisa di-swap atau di-repair</span>. Ini aturan dari bunnyOS server.<br><br>
+          <strong>Apa yang terjadi?</strong><br>
+          • <strong>Equip gear</strong> → SKIP jika ada misi aktif<br>
+          • <strong>Craft onboarding</strong> → SKIP jika ada misi aktif<br>
+          • <strong>Repair gear</strong> → SKIP jika ada misi aktif<br>
+          • <strong>Jual loot</strong> → Tetap jalan (tidak terpengaruh)<br>
+          • <strong>Terima misi</strong> → Tetap jalan (tidak terpengaruh)<br><br>
+          <span style="color:var(--accent)">Bot otomatis detect dan skip operasi yang terkunci. Tidak ada error, hanya skip.</span>
+        </div>
+        <div class="tip-box" style="margin-top:12px">
+          <div class="tip-box-title">💡 Strategi Optimal</div>
+          <ul class="tip-list">
+            <li>Tunggu semua misi selesai sebelum equip/craft/repair</li>
+            <li>Bot akan otomatis equip gear saat misi selesai</li>
+            <li>Power naik = chance menang naik = profit naik</li>
+            <li>Cek log untuk melihat kapan bot equip gear</li>
+          </ul>
+        </div>
       </div>
     </div>
 
@@ -1660,9 +1733,10 @@
           <div class="tip-box-title">💡 Catatan Penting</div>
           <ul class="tip-list">
             <li>Misi yang sedang berjalan <strong>tidak bisa dibatalkan</strong> — harus tunggu selesai</li>
-            <li>Bot hanya jual loot, <strong>bukan craft gear</strong> (craft butuh strategi manual)</li>
+            <li>Bot jual loot dengan <strong>smart selling</strong> — simpan 5 item crafting</li>
             <li>Jika kalah, entry cost hilang dan tidak dapat loot — bot akan coba misi lain</li>
-            <li>Bot pilih misi dengan <strong>chance menang tertinggi</strong> yang bisa dibayar</li>
+            <li>Bot pilih misi <strong>gratis dulu</strong>, lalu misi murah dengan chance tinggi</li>
+            <li>Bot skip misi mahal (>15 carrots) untuk menghemat saldo</li>
           </ul>
         </div>
       </div>
@@ -1672,7 +1746,7 @@
     <div class="info-section">
       <div class="info-section-title">
         <span class="emoji">🧠</span>
-        Strategi Pemilihan Misi
+        Strategi Pemilihan Misi v2
       </div>
       <div class="grid-2">
         <div class="card">
@@ -1683,7 +1757,7 @@
           <div style="font-size:12px;line-height:2">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
               <span style="background:var(--green-dim);color:var(--green);padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px">#1</span>
-              <span><strong>Scrounge</strong> — Gratis, selalu tersedia, chance 95%+</span>
+              <span><strong>Scrounge</strong> — Gratis (cost=0), chance 95%+</span>
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
               <span style="background:var(--blue-dim);color:var(--blue);padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px">#2</span>
@@ -1691,11 +1765,11 @@
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
               <span style="background:var(--purple-dim);color:var(--purple);padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px">#3</span>
-              <span><strong>Tall Grass</strong> — Medium (~13 carrots), chance 50%+</span>
+              <span><strong>Open Field</strong> — Medium (~10 carrots), chance 60%+</span>
             </div>
             <div style="display:flex;align-items:center;gap:8px">
               <span style="background:var(--red-dim);color:var(--red);padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px">#4</span>
-              <span><strong>Hedgerow+</strong> — Hanya jika power cukup</span>
+              <span><strong>SKIP</strong> — Misi mahal (>15 carrots)</span>
             </div>
           </div>
         </div>
@@ -1707,11 +1781,11 @@
           <div style="font-size:12px;line-height:1.8">
             <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
               <span>Waktu eksekusi</span>
-              <span style="font-weight:700;color:var(--cyan)">~10-15 detik</span>
+              <span style="font-weight:700;color:var(--cyan)">~15-30 detik</span>
             </div>
             <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
               <span>API calls</span>
-              <span style="font-weight:700;color:var(--cyan)">8-15 calls</span>
+              <span style="font-weight:700;color:var(--cyan)">10-20 calls</span>
             </div>
             <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
               <span>Misi diterima</span>
@@ -1721,9 +1795,17 @@
               <span>Loot dijual</span>
               <span style="font-weight:700;color:var(--accent)">0-5 items</span>
             </div>
-            <div style="display:flex;justify-content:space-between;padding:6px 0">
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
               <span>Event di-claim</span>
               <span style="font-weight:700;color:var(--purple)">0-3 rewards</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+              <span>Gear di-equip</span>
+              <span style="font-weight:700;color:var(--cyan)">0-5 items</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0">
+              <span>Onboarding crafted</span>
+              <span style="font-weight:700;color:var(--accent)">0-4 items</span>
             </div>
           </div>
         </div>
@@ -2047,7 +2129,24 @@ function colorizeLog(text) {
     .replace(/(Sell failed \d+ × \w+)/g, '<span style="color:var(--red)">$1</span>')
     .replace(/(Repair failed .+?):/g, '<span style="color:var(--red)">$1</span>:')
     .replace(/(Claimed event \w+)/g, '<span style="color:var(--green)">$1</span>')
-    .replace(/(Repaired .+)/g, '<span style="color:var(--yellow)">$1</span>');
+    .replace(/(Repaired .+)/g, '<span style="color:var(--yellow)">$1</span>')
+    .replace(/(Equipping gear\.\.\.)/g, '<span style="color:var(--purple)">$1</span>')
+    .replace(/(Found \d+ items to equip)/g, '<span style="color:var(--purple)">$1</span>')
+    .replace(/(Equipping: .+)/g, '<span style="color:var(--cyan)">$1</span>')
+    .replace(/(Gear equipped successfully)/g, '<span style="color:var(--green)">$1</span>')
+    .replace(/(Equip failed: .+)/g, '<span style="color:var(--red)">$1</span>')
+    .replace(/(Skipping equip .+)/g, '<span style="color:var(--yellow)">$1</span>')
+    .replace(/(Checking onboarding events\.\.\.)/g, '<span style="color:var(--accent)">$1</span>')
+    .replace(/(Buying \d+ Timber for onboarding\.\.\.)/g, '<span style="color:var(--cyan)">$1</span>')
+    .replace(/(Crafting \d+ (Planks|Ropes) for onboarding\.\.\.)/g, '<span style="color:var(--cyan)">$1</span>')
+    .replace(/(Crafting Slingshot for onboarding\.\.\.)/g, '<span style="color:var(--cyan)">$1</span>')
+    .replace(/(Claimed: .+)/g, '<span style="color:var(--green)">$1</span>')
+    .replace(/(Craft Slingshot failed: .+)/g, '<span style="color:var(--red)">$1</span>')
+    .replace(/(Skipping onboarding .+)/g, '<span style="color:var(--yellow)">$1</span>')
+    .replace(/(Skipping repair .+)/g, '<span style="color:var(--yellow)">$1</span>')
+    .replace(/(No active missions .+)/g, '<span style="color:var(--green)">$1</span>')
+    .replace(/(All \d+ mission slots busy)/g, '<span style="color:var(--yellow)">$1</span>')
+    .replace(/(Skill version: .+)/g, '<span style="color:var(--text-dim)">$1</span>');
 }
 
 async function refreshLog() {
