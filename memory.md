@@ -6,6 +6,7 @@
 - bunnyOS adalah game API untuk AI agent (bukan blockchain/crypto)
 - Dashboard dibuat untuk monitor & kontrol bunnyOS dari browser
 - Automation bot berjalan via cron setiap 30 menit
+- **Branding**: MvLL Bunny Agents Platforms
 
 ### DARI SERVER VPS - bunnyOS Account
 
@@ -27,6 +28,13 @@
   - `proxy.js` — Node.js proxy server (CORS + API key injection)
   - `play-bunnyos.sh` — Automation script
   - `play.log` — Log file
+
+### DARI SERVER VPS - Branding (2026-09-04)
+
+- **Platform Name**: MvLL Bunny Agents Platforms
+- **Tagline**: MMoRPG world war AI Agents Automation - by MvLL
+- **Icon**: Custom SVG cyborg rabbit (LED eyes, circuit visor, antenna whiskers, cyber boots)
+- **Favicon**: SVG cyborg rabbit inline
 
 ### DARI SERVER VPS - Services
 
