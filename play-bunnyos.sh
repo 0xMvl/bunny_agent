@@ -131,20 +131,93 @@ if [ -n "$ROPE_EVENT" ]; then
 fi
 
 # Craft Slingshot (cost: 40 carrots, reward: 375 carrots)
+# Requires: 3 dust_tuft, 1 plank, 2 rope + 40 carrots fee
 SLINGSHOT_EVENT=$(echo "$EVENTS" | jq -r '.events[] | select(.templateKey == "onboarding_craft_slingshot" and .completedAt == null)')
 if [ -n "$SLINGSHOT_EVENT" ]; then
-  log "  Crafting Slingshot for onboarding..."
-  RESULT=$(api POST "/items/slingshot/craft")
-  STATUS=$(echo "$RESULT" | jq -r '.error // empty')
-  if [ -z "$STATUS" ]; then
-    # Claim reward
-    EVENT_ID=$(echo "$EVENTS" | jq -r '.events[] | select(.templateKey == "onboarding_craft_slingshot") | .id')
-    if [ -n "$EVENT_ID" ]; then
-      api POST "/events/$EVENT_ID/claim" > /dev/null
-      log "  Claimed: Craft Slingshot → +375 carrots"
+  log "  Checking materials for Slingshot..."
+  INV_NOW=$(api GET /inventory)
+  DUST=$(echo "$INV_NOW" | jq '[.materials[] | select(.key == "dust_tuft") | .quantity] | add // 0')
+  PLANK=$(echo "$INV_NOW" | jq '[.materials[] | select(.key == "plank") | .quantity] | add // 0')
+  ROPE=$(echo "$INV_NOW" | jq '[.materials[] | select(.key == "rope") | .quantity] | add // 0')
+  log "    Have: dust_tuft=$DUST/3, plank=$PLANK/1, rope=$ROPE/2"
+
+  # Buy more timber if need more dust_tuft (timber gives fiber+straw+dust_tuft on missions)
+  # Craft planks if needed (requires timber)
+  if [ "$PLANK" -lt 1 ]; then
+    TIMBER=$(echo "$INV_NOW" | jq '[.materials[] | select(.key == "timber") | .quantity] | add // 0')
+    if [ "$TIMBER" -gt 0 ]; then
+      log "    Crafting 1 Plank..."
+      RESULT=$(api POST "/items/plank/craft")
+      STATUS=$(echo "$RESULT" | jq -r '.error // empty')
+      if [ -z "$STATUS" ]; then
+        PLANK=1
+        log "    Plank crafted"
+      else
+        log "    Craft Plank failed: $STATUS"
+      fi
+    else
+      log "    No timber to craft Plank — buying..."
+      for i in 1 2 3; do
+        api POST "/items/timber/buy" '{"quantity":1}' > /dev/null
+      done
+      RESULT=$(api POST "/items/plank/craft")
+      STATUS=$(echo "$RESULT" | jq -r '.error // empty')
+      if [ -z "$STATUS" ]; then
+        PLANK=1
+        log "    Plank crafted after buying timber"
+      fi
+    fi
+  fi
+
+  # Craft ropes if needed (requires fiber)
+  if [ "$ROPE" -lt 2 ]; then
+    NEEDED=$((2 - ROPE))
+    INV_NOW=$(api GET /inventory)
+    FIBER=$(echo "$INV_NOW" | jq '[.materials[] | select(.key == "fiber") | .quantity] | add // 0')
+    if [ "$FIBER" -ge "$NEEDED" ]; then
+      log "    Crafting $NEEDED Ropes..."
+      for i in $(seq 1 $NEEDED); do
+        RESULT=$(api POST "/items/rope/craft")
+      done
+      ROPE=$((ROPE + NEEDED))
+      log "    Ropes crafted"
+    else
+      log "    Not enough fiber ($FIBER) for ropes — buying timber..."
+      for i in $(seq 1 $((NEEDED * 2))); do
+        api POST "/items/timber/buy" '{"quantity":1}' > /dev/null
+      done
+      for i in $(seq 1 $NEEDED); do
+        RESULT=$(api POST "/items/rope/craft")
+      done
+      ROPE=$((ROPE + NEEDED))
+      log "    Ropes crafted after buying timber"
+    fi
+  fi
+
+  # Check dust_tuft — need 3, may need more from missions/buying
+  INV_NOW=$(api GET /inventory)
+  DUST=$(echo "$INV_NOW" | jq '[.materials[] | select(.key == "dust_tuft") | .quantity] | add // 0')
+  PLANK=$(echo "$INV_NOW" | jq '[.materials[] | select(.key == "plank") | .quantity] | add // 0')
+  ROPE=$(echo "$INV_NOW" | jq '[.materials[] | select(.key == "rope") | .quantity] | add // 0')
+
+  if [ "$DUST" -ge 3 ] && [ "$PLANK" -ge 1 ] && [ "$ROPE" -ge 2 ]; then
+    log "  Materials ready! Crafting Slingshot..."
+    RESULT=$(api POST "/items/slingshot/craft")
+    STATUS=$(echo "$RESULT" | jq -r '.error // empty')
+    if [ -z "$STATUS" ]; then
+      log "  Slingshot crafted!"
+      # Claim reward
+      EVENTS=$(api GET /events)
+      EVENT_ID=$(echo "$EVENTS" | jq -r '.events[] | select(.templateKey == "onboarding_craft_slingshot") | .id')
+      if [ -n "$EVENT_ID" ]; then
+        api POST "/events/$EVENT_ID/claim" > /dev/null
+        log "  Claimed: Craft Slingshot → +375 carrots"
+      fi
+    else
+      log "  Craft Slingshot failed: $STATUS"
     fi
   else
-    log "  Craft Slingshot failed: $STATUS"
+    log "  Not enough materials for Slingshot (dust_tuft=$DUST/3, plank=$PLANK/1, rope=$ROPE/2) — will try next run"
   fi
 fi
 
@@ -165,21 +238,25 @@ if [ -n "$EQUIP_SLINGSHOT_EVENT" ]; then
   fi
 fi
 
-# Repair any item (reward: 200 carrots)
+# Repair any item (reward: 200 carrots) — skip items with 0 durability (broken beyond repair)
 REPAIR_EVENT=$(echo "$EVENTS" | jq -r '.events[] | select(.templateKey == "onboarding_repair_item" and .completedAt == null)')
 if [ -n "$REPAIR_EVENT" ]; then
-  # Find any item with durability < maxDurability
-  REPAIRABLE=$(api GET /inventory | jq -r '.equipment[] | select(.durability < .maxDurability) | .id' | head -1)
+  REPAIRABLE=$(api GET /inventory | jq -r '.equipment[] | select(.durability > 0 and .durability < .maxDurability) | .id' | head -1)
   if [ -n "$REPAIRABLE" ]; then
     RESULT=$(api POST "/inventory/$REPAIRABLE/repair")
     STATUS=$(echo "$RESULT" | jq -r '.error // empty')
     if [ -z "$STATUS" ]; then
+      log "  Repaired item for onboarding"
       EVENT_ID=$(echo "$EVENTS" | jq -r '.events[] | select(.templateKey == "onboarding_repair_item") | .id')
       if [ -n "$EVENT_ID" ]; then
         api POST "/events/$EVENT_ID/claim" > /dev/null
         log "  Claimed: Repair Item → +200 carrots"
       fi
+    else
+      log "  Onboarding repair failed: $STATUS"
     fi
+  else
+    log "  No repairable items (all broken items have 0 durability)"
   fi
 fi
 
@@ -241,9 +318,9 @@ if [ "$AVAILABLE_SLOTS" -gt 0 ]; then
 
   # Get zone board, sort by priority:
   # 1. Free missions (cost=0) first
-  # 2. Then by success chance descending (>70% preferred)
-  # 3. Then by cost ascending
-  MISSIONS=$(api GET /zones/sunny_meadow | jq -c '[.missions[] | select(.pinned == true or .entryCost <= '"$CARROTS"')] | sort_by(.entryCost) | sort_by(-.successChance)[]')
+  # 2. Then by cost ascending (cheaper first)
+  # 3. Then by mobPower ascending (easier first)
+  MISSIONS=$(api GET /zones/sunny_meadow | jq -c '[.missions[] | select(.pinned == true or .entryCost <= '"$CARROTS"')] | sort_by(.mobPower) | sort_by(.entryCost)[]')
 
   while read mission; do
     if [ "$AVAILABLE_SLOTS" -le 0 ]; then break; fi
@@ -279,24 +356,37 @@ else
 fi
 
 # 9. Repair equipped gear if durability low (only when no active missions)
+# Skip items with 0 durability (broken beyond repair, needs patch_scraps material)
 ACTIVE_COUNT=$(api GET "/missions?status=in_progress" | jq '.missions | length')
 if [ "$ACTIVE_COUNT" -eq 0 ]; then
   log "No active missions — repairing gear..."
-  REPAIR_ITEMS=$(api GET /inventory | jq -c '.equipment[] | select(.equippedBunnyId != null and .durability < .maxDurability * 0.5)')
-  while read item; do
-    IID=$(echo "$item" | jq -r '.id')
-    INAME=$(echo "$item" | jq -r '.name')
-    DUR=$(echo "$item" | jq -r '.durability')
-    MAX=$(echo "$item" | jq -r '.maxDurability')
-    REPAIR=$(api POST "/inventory/$IID/repair")
-    COST=$(echo "$REPAIR" | jq -r '.fee // 0')
-    STATUS=$(echo "$REPAIR" | jq -r '.error // empty')
-    if [ -n "$STATUS" ]; then
-      log "Repair failed $INAME ($DUR/$MAX): $STATUS"
-    else
-      log "Repaired $INAME ($DUR/$MAX) → cost: $COST"
-    fi
-  done <<< "$REPAIR_ITEMS"
+  INVENTORY=$(api GET /inventory)
+  PATCH_SCRAPS=$(echo "$INVENTORY" | jq '[.materials[] | select(.key == "patch_scraps") | .quantity] | add // 0')
+  REPAIR_ITEMS=$(echo "$INVENTORY" | jq -c '.equipment[] | select(.equippedBunnyId != null and .durability > 0 and .durability < .maxDurability * 0.5)')
+  if [ -n "$REPAIR_ITEMS" ]; then
+    while read item; do
+      IID=$(echo "$item" | jq -r '.id')
+      INAME=$(echo "$item" | jq -r '.name')
+      DUR=$(echo "$item" | jq -r '.durability')
+      MAX=$(echo "$item" | jq -r '.maxDurability')
+      REPAIR_COST=$(( (MAX - DUR) ))
+      if [ "$PATCH_SCRAPS" -lt 2 ]; then
+        log "  Skip repair $INAME — not enough patch_scraps ($PATCH_SCRAPS)"
+        continue
+      fi
+      REPAIR=$(api POST "/inventory/$IID/repair")
+      COST=$(echo "$REPAIR" | jq -r '.fee // 0')
+      STATUS=$(echo "$REPAIR" | jq -r '.error // empty')
+      if [ -n "$STATUS" ]; then
+        log "  Repair failed $INAME ($DUR/$MAX): $STATUS"
+      else
+        log "  Repaired $INAME ($DUR/$MAX) → cost: $COST"
+        PATCH_SCRAPS=$((PATCH_SCRAPS - 2))
+      fi
+    done <<< "$REPAIR_ITEMS"
+  else
+    log "  No gear needs repair (durability > 50%)"
+  fi
 else
   log "Skipping repair — $ACTIVE_COUNT missions in flight"
 fi

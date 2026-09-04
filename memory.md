@@ -241,6 +241,11 @@ Browser → Caddy (HTTPS, port 443) → Proxy (Node.js, port 4664) → bunnyOS A
 4. Jual semua materials termasuk yang dibutuhkan → Fix: simpan 5 item crafting
 5. Misi mahal (>15 carrots) → Fix: skip misi mahal
 
+**play-bunnyos.sh v2.1 (2026-09-04 21:15):**
+1. Craft Slingshot gagal "Conflict" → Fix: cek material (dust_tuft/plank/rope) sebelum craft, auto-buy timber & craft component jika kurang
+2. Repair gagal "Not Found" → Fix: skip item 0 durability (hancur), cek patch_scraps sebelum repair
+3. Misi tidak diambil → Fix: ganti `sort_by(-.successChance)` (null) → `sort_by(.mobPower) | sort_by(.entryCost)`
+
 **index.html:**
 1. `switchTab()` pakai global `event` (tidak reliable) → Fix: pass `this` sebagai parameter
 2. Countdown timer tidak work → Fix: tambah `data-resolve-at` attribute
@@ -253,6 +258,8 @@ Browser → Caddy (HTTPS, port 443) → Proxy (Node.js, port 4664) → bunnyOS A
 - Item dijual dari inventory materials, bukan dari haul
 - **Loadout Lock**: Equipment tidak bisa di-swap/repair saat misi aktif
 - **Onboarding Rewards**: Harus di-claim manual, tidak otomatis
+- **Craft Slingshot**: Butuh 3 dust_tuft + 1 plank + 2 rope + 40 carrots fee — material harus disiapkan dulu
+- **Repair**: Butuh patch_scraps material (min 2) — item 0 durability tidak bisa di-repair
 
 ### DARI SERVER VPS - Key Learnings
 
