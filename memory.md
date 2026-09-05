@@ -1,13 +1,13 @@
 # Memory - bunnyOS Dashboard & Automation
 
-## Last Updated: 2026-09-04 18:50 WIB (DARI SERVER VPS)
+## Last Updated: 2026-09-05 21:15 WIB (DARI SERVER VPS)
 
 ### Session Overview
 - bunnyOS adalah game API untuk AI agent (bukan blockchain/crypto)
 - Dashboard dibuat untuk monitor & kontrol bunnyOS dari browser
 - Automation bot berjalan via cron setiap 30 menit
 - **Branding**: MvLL Bunny Agents Platforms
-- **Version**: Dashboard v2.0 + Automation Bot v2
+- **Version**: Dashboard v2.1 + Automation Bot v2.1 + Bot Mode Selector
 
 ### DARI SERVER VPS - bunnyOS Account
 
@@ -138,6 +138,29 @@ Browser → Caddy (HTTPS, port 443) → Proxy (Node.js, port 4664) → bunnyOS A
 - **Smart Material Selling**: Simpan 5 item crafting materials, jual excess
 - **Optimized Mission Selection**: Prioritas misi gratis (cost=0), skip misi >15 carrots
 - **Colorized Log**: Warna berbeda untuk equip, craft, onboarding, repair
+
+### DARI SERVER VPS - Bot Mode Selector (2026-09-05)
+
+- **Config File**: `/root/bunny/bot-mode.json`
+- **API Endpoint**: `GET/POST /api/mode`
+- **Dashboard Toggle**: Tab Automation Bot → toggle Konservatif/Agresif
+
+| Mode | Cost Limit | Prioritas | Sort | Win Rate | Risiko |
+|------|-----------|-----------|------|----------|--------|
+| Konservatif | ≤15 carrots | Gratis → Murah → Mudah | mobPower ASC → cost ASC | ~90%+ | Rendah |
+| Agresif | Tanpa limit | Kuat → Reward besar | mobPower DESC → cost ASC | ~50-70% | Tinggi |
+
+**Mode Konservatif (default):**
+- Prioritas misi gratis (cost=0)
+- Skip misi >15 carrots
+- Target: Scrounge, Garden's Edge
+- Profit stabil, minim risiko
+
+**Mode Agresif:**
+- Terima SEMUA misi (tanpa limit cost)
+- Prioritas monster kuat (reward besar)
+- Target: Tall Grass, Open Field, Old Orchard
+- Progress cepat, risiko tinggi
 
 ### DARI SERVER VPS - Strategi Misi v2
 

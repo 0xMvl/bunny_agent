@@ -6,6 +6,7 @@ const PORT = 4664;
 const BUNNY_API = 'https://world.bunnyos.ai';
 const API_KEY = 'bos_432b85674b64732783a51bc8efd9a6527f730d68f7b0208ce619519836813d49';
 const LOG_FILE = '/root/bunny/play.log';
+const MODE_FILE = '/root/bunny/bot-mode.json';
 
 const server = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,6 +16,36 @@ const server = http.createServer((req, res) => {
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
     res.end();
+    return;
+  }
+
+  // Bot mode endpoint
+  if (req.url === '/api/mode') {
+    if (req.method === 'GET') {
+      try {
+        const modeData = fs.existsSync(MODE_FILE) ? JSON.parse(fs.readFileSync(MODE_FILE, 'utf-8')) : { mode: 'konservatif' };
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(modeData));
+      } catch (err) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ mode: 'konservatif' }));
+      }
+    } else if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk; });
+      req.on('end', () => {
+        try {
+          const data = JSON.parse(body);
+          const mode = data.mode === 'agresif' ? 'agresif' : 'konservatif';
+          fs.writeFileSync(MODE_FILE, JSON.stringify({ mode }));
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ mode }));
+        } catch (err) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'invalid_json' }));
+        }
+      });
+    }
     return;
   }
 

@@ -18,6 +18,14 @@ api() {
 
 log "=== AUTO PLAY START ==="
 
+# Read bot mode
+MODE_FILE="/root/bunny/bot-mode.json"
+BOT_MODE="konservatif"
+if [ -f "$MODE_FILE" ]; then
+  BOT_MODE=$(jq -r '.mode // "konservatif"' "$MODE_FILE")
+fi
+log "Bot mode: $BOT_MODE"
+
 # 1. Read announcements (check skillVersion)
 SKILL=$(api GET /announcements | jq -r '.skillVersion')
 log "Skill version: $SKILL"
@@ -316,11 +324,16 @@ AVAILABLE_SLOTS=$((SLOTS - ACTIVE_COUNT))
 if [ "$AVAILABLE_SLOTS" -gt 0 ]; then
   log "Available slots: $AVAILABLE_SLOTS — looking for missions..."
 
-  # Get zone board, sort by priority:
-  # 1. Free missions (cost=0) first
-  # 2. Then by cost ascending (cheaper first)
-  # 3. Then by mobPower ascending (easier first)
-  MISSIONS=$(api GET /zones/sunny_meadow | jq -c '[.missions[] | select(.pinned == true or .entryCost <= '"$CARROTS"')] | sort_by(.mobPower) | sort_by(.entryCost)[]')
+  # Mission selection based on bot mode
+  if [ "$BOT_MODE" = "agresif" ]; then
+    # Agresif mode: accept ALL missions, prioritize high reward, no cost limit
+    log "  [AGRESIF] No cost limit — accepting all profitable missions"
+    MISSIONS=$(api GET /zones/sunny_meadow | jq -c '[.missions[] | select(.pinned == true or .entryCost <= '"$CARROTS"')] | sort_by(.mobPower) | reverse | sort_by(.entryCost)[]')
+  else
+    # Konservatif mode: free first, skip >15 carrots, sort by cost then mobPower
+    log "  [KONSERVATIF] Prioritas gratis, skip >15 carrots"
+    MISSIONS=$(api GET /zones/sunny_meadow | jq -c '[.missions[] | select(.pinned == true or .entryCost <= '"$CARROTS"')] | sort_by(.mobPower) | sort_by(.entryCost)[]')
+  fi
 
   while read mission; do
     if [ "$AVAILABLE_SLOTS" -le 0 ]; then break; fi
@@ -330,9 +343,17 @@ if [ "$AVAILABLE_SLOTS" -gt 0 ]; then
     COST=$(echo "$mission" | jq -r '.entryCost')
     MOB=$(echo "$mission" | jq -r '.mobPower')
 
-    # Skip expensive missions (>15 carrots) unless free
-    if (( $(echo "$COST > 15" | bc -l) )); then
-      continue
+    # Mode-based cost filtering
+    if [ "$BOT_MODE" = "agresif" ]; then
+      # Agresif: no cost limit, accept anything we can afford
+      if (( $(echo "$COST > $CARROTS" | bc -l) )); then
+        continue
+      fi
+    else
+      # Konservatif: skip expensive missions (>15 carrots) unless free
+      if (( $(echo "$COST > 15" | bc -l) )); then
+        continue
+      fi
     fi
 
     # Check if we can afford it
@@ -342,7 +363,7 @@ if [ "$AVAILABLE_SLOTS" -gt 0 ]; then
       CHANCE=$(echo "$ACCEPT" | jq -r '.successChance // 0')
       if [ "$STATUS" = "in_progress" ]; then
         CHANCE_PCT=$(echo "$CHANCE * 100" | bc 2>/dev/null || echo "?")
-        log "Accepted: $MNAME (mob:$MOB, cost:$COST, chance:${CHANCE_PCT}%)"
+        log "Accepted: $MNAME (mob:$MOB, cost:$COST, chance:${CHANCE_PCT}%) [$BOT_MODE]"
         CARROTS=$(echo "$CARROTS - $COST" | bc)
         AVAILABLE_SLOTS=$((AVAILABLE_SLOTS - 1))
       else
