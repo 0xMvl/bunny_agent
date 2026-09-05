@@ -961,7 +961,7 @@
   /* Agent Stats Bar */
   .agent-stats-bar {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 12px;
     background: rgba(18,18,26,0.6);
     border-radius: 14px;
@@ -1177,6 +1177,20 @@
           <div class="agent-stat-info">
             <div class="agent-stat-value" id="agentRank">#11</div>
             <div class="agent-stat-label">Rank</div>
+          </div>
+        </div>
+        <div class="agent-stat" id="botModeIndicator">
+          <div class="agent-stat-icon" id="botModeIcon">🛡️</div>
+          <div class="agent-stat-info">
+            <div class="agent-stat-value" id="botModeValue" style="font-size:14px;display:flex;align-items:center;gap:6px">
+              <span id="botModeName">Konservatif</span>
+              <span id="botModeSignal" style="display:inline-flex;gap:2px">
+                <span style="width:3px;height:8px;background:var(--green);border-radius:1px"></span>
+                <span style="width:3px;height:12px;background:var(--green);border-radius:1px"></span>
+                <span style="width:3px;height:16px;background:var(--green);border-radius:1px"></span>
+              </span>
+            </div>
+            <div class="agent-stat-label">Bot Mode</div>
           </div>
         </div>
       </div>
@@ -2511,6 +2525,34 @@ function updateModeUI(mode) {
   agresifBtn.className = 'mode-option' + (mode === 'agresif' ? ' active-agresif' : '');
   dot.className = 'mode-status-dot ' + mode;
   statusText.textContent = 'Mode aktif: ' + (mode === 'agresif' ? 'Agresif' : 'Konservatif');
+
+  // Update dashboard indicator
+  const modeIcon = document.getElementById('botModeIcon');
+  const modeName = document.getElementById('botModeName');
+  const modeSignal = document.getElementById('botModeSignal');
+  const modeIndicator = document.getElementById('botModeIndicator');
+
+  if (mode === 'agresif') {
+    modeIcon.textContent = '⚔️';
+    modeName.textContent = 'Agresif';
+    modeName.style.color = 'var(--red)';
+    modeSignal.innerHTML = `
+      <span style="width:3px;height:8px;background:var(--red);border-radius:1px;animation:pulse 1.5s ease-in-out infinite"></span>
+      <span style="width:3px;height:12px;background:var(--red);border-radius:1px;animation:pulse 1.5s ease-in-out 0.2s infinite"></span>
+      <span style="width:3px;height:16px;background:var(--red);border-radius:1px;animation:pulse 1.5s ease-in-out 0.4s infinite"></span>
+    `;
+    modeIndicator.style.borderLeft = '3px solid var(--red)';
+  } else {
+    modeIcon.textContent = '🛡️';
+    modeName.textContent = 'Konservatif';
+    modeName.style.color = 'var(--green)';
+    modeSignal.innerHTML = `
+      <span style="width:3px;height:8px;background:var(--green);border-radius:1px"></span>
+      <span style="width:3px;height:12px;background:var(--green);border-radius:1px"></span>
+      <span style="width:3px;height:16px;background:var(--green);border-radius:1px"></span>
+    `;
+    modeIndicator.style.borderLeft = '3px solid var(--green)';
+  }
 }
 
 async function setMode(mode) {

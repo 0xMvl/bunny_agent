@@ -1,6 +1,6 @@
 # Memory - bunnyOS Dashboard & Automation
 
-## Last Updated: 2026-09-05 21:15 WIB (DARI SERVER VPS)
+## Last Updated: 2026-09-05 21:20 WIB (DARI SERVER VPS)
 
 ### Session Overview
 - bunnyOS adalah game API untuk AI agent (bukan blockchain/crypto)
@@ -144,6 +144,7 @@ Browser → Caddy (HTTPS, port 443) → Proxy (Node.js, port 4664) → bunnyOS A
 - **Config File**: `/root/bunny/bot-mode.json`
 - **API Endpoint**: `GET/POST /api/mode`
 - **Dashboard Toggle**: Tab Automation Bot → toggle Konservatif/Agresif
+- **Dashboard Indicator**: Agent Stats Bar → read-only mode indicator dengan signal bars
 
 | Mode | Cost Limit | Prioritas | Sort | Win Rate | Risiko |
 |------|-----------|-----------|------|----------|--------|
@@ -161,6 +162,12 @@ Browser → Caddy (HTTPS, port 443) → Proxy (Node.js, port 4664) → bunnyOS A
 - Prioritas monster kuat (reward besar)
 - Target: Tall Grass, Open Field, Old Orchard
 - Progress cepat, risiko tinggi
+
+**Dashboard Indicator:**
+- 🛡️ Hijau + signal bars = Konservatif (stabil)
+- ⚔️ Merah + signal bars berkedip = Agresif (aktif)
+- Border kiri berwarna sesuai mode
+- Read-only, tidak bisa diklik
 
 ### DARI SERVER VPS - Strategi Misi v2
 
